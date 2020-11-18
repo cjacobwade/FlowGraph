@@ -1,0 +1,28 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+[InlineScriptableObject(path ="Assets/Data/UniqueObjectDatas/", inline = false)]
+public class UniqueObjectData : ScriptableObject
+{
+#if UNITY_EDITOR
+	public static UniqueObjectData CreateItemData(string path, string name)
+	{
+		Object prevSelection = Selection.activeObject;
+
+		UniqueObjectData uniqueObjectData = AssetDatabase.LoadAssetAtPath<UniqueObjectData>(path + "/" + name + ".asset");
+		if (uniqueObjectData == null)
+		{
+			uniqueObjectData = ScriptableObjectUtils.CreateAsset<UniqueObjectData>(path, name);
+			uniqueObjectData.name = name;
+		}
+
+		Selection.activeObject = prevSelection;
+		return uniqueObjectData;
+	}
+#endif
+}

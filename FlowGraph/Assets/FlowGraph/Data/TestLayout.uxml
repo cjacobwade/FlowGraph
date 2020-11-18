@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement style="height: 100%; flex-shrink: 0; flex-grow: 1; width: 100%; align-items: flex-end; flex-direction: row-reverse;">
+        <ui:VisualElement style="width: 300px; flex-grow: 0; flex-shrink: 0; height: 100%; background-color: rgb(96, 96, 96);">
+            <ui:ScrollView name="ScrollView" show-vertical-scroller="true" style="width: auto; height: auto; align-items: stretch; justify-content: space-around; flex-grow: 1; flex-shrink: 0;">
+                <ui:IMGUIContainer style="width: 300px; height: 100%; flex-grow: 0; flex-shrink: 0;" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; flex-shrink: 0; height: 100%; background-color: rgb(58, 58, 58);" />
+    </ui:VisualElement>
+</ui:UXML>

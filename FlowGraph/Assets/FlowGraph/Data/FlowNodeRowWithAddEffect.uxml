@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Template name="FlowNodeAddEffect" src="FlowNodeAddEffect.uxml" />
+    <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; flex-direction: row; height: 20px; width: 100%; justify-content: center; align-items: center;">
+        <ui:Instance template="FlowNodeAddEffect" name="FlowNodeAddEffect" style="flex-grow: 1;" />
+    </ui:VisualElement>
+</ui:UXML>
