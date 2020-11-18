@@ -18,7 +18,9 @@ public class FlowEffect
 	}
 
 	public int nextNodeID = -1;
+
 	public SequenceMode sequenceMode = SequenceMode.AfterPrev;
+	public float wait = 0f;
 
 	public ModuleFunction function = new ModuleFunction();
 }

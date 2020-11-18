@@ -56,7 +56,7 @@ MonoBehaviour:
     - nextNodeID: -1
       sequenceMode: 0
       function:
-        context: {fileID: 0}
+        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
         module: FlowModule_Animation
         function: StopAnimation
         arguments: []
@@ -65,8 +65,8 @@ MonoBehaviour:
       sequenceMode: 0
       function:
         context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
+        module: FlowModule_Core
+        function: WaitForSeconds
         arguments:
         - id: 3
         outcomes: []
@@ -148,9 +148,8 @@ MonoBehaviour:
         type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
         value: 2.5
     00000003:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
       data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 0

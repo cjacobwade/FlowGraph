@@ -11,6 +11,8 @@ public class FlowEffectElement : VisualElement
 	public FlowNodeElement nodeElement = null;
 	public FlowEffect effect = null;
 
+	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
+
 	public FlowEffectElement(FlowNodeElement nodeElement, FlowEffect effect)
 	{
 		this.nodeElement = nodeElement;
@@ -22,7 +24,7 @@ public class FlowEffectElement : VisualElement
 		Add(rowRoot);
 
 		Button button = rowRoot.Query<Button>(className:"flow-node-row-effect-button");
-		button.clicked += OnEffectSelected;
+		button.clicked += EffectButton_OnClicked;
 
 		string module = effect.function.module.Replace("FlowModule_", "");
 		string function = effect.function.function;
@@ -36,31 +38,8 @@ public class FlowEffectElement : VisualElement
 		portContainer.Add(port);
 	}
 
-	private void OnEffectSelected()
+	private void EffectButton_OnClicked()
 	{
-		var so = new SerializedObject(nodeElement.graphView.flowGraph);
-
-		bool foundEffect = false;
-
-		var sp = so.GetIterator();
-		while(sp.Next(true))
-		{
-			if(!sp.isArray && sp.type == typeof(FlowEffect).Name)
-			{
-				foundEffect = true;
-				Debug.Log(true);
-				break;
-			}
-		}
-
-		if (foundEffect)
-		{
-// 			PropertyField field = new PropertyField(sp);
-// 			field.StretchToParentSize();
-// 
-// 			var inspector = nodeElement.graphView.window.inspector;
-// 			inspector.Clear();
-// 			inspector.Add(field);
-		}
+		OnEffectSelected(this);
 	}
 }

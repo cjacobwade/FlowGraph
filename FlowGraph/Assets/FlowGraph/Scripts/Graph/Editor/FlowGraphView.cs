@@ -11,6 +11,8 @@ public class FlowGraphView : GraphView
 	public FlowGraphWindow window = null;
 	public FlowGraph flowGraph = null;
 
+	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
+
 	public FlowGraphView(FlowGraphWindow window, FlowGraph flowGraph)
 	{
 		this.window = window;
@@ -28,7 +30,11 @@ public class FlowGraphView : GraphView
 			AddNode(Vector2.one * 100, "Start");
 
 		foreach (var node in flowGraph.nodes)
-			AddElement(new FlowNodeElement(this, node));
+		{
+			var nodeElement = new FlowNodeElement(this, node);
+			nodeElement.OnEffectSelected += (e) => OnEffectSelected(e);
+			AddElement(nodeElement);
+		}
 
 		deleteSelection = OnDeletedSelection;
 		graphViewChanged = OnGraphViewChanged;

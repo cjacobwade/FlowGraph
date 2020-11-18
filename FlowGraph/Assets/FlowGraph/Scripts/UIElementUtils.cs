@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 
 public static class UIElementUtils
 {
-	public static void AddStyleSheet(this VisualElement element, string name)
+	public static StyleSheet GetStyleSheet(string name)
 	{
 		string[] guids = AssetDatabase.FindAssets(string.Format("t:StyleSheet {0}", name));
 		for (int i = 0; i < guids.Length; i++)
@@ -16,10 +16,19 @@ public static class UIElementUtils
 			string path = AssetDatabase.GUIDToAssetPath(guids[i]);
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
 			if (styleSheet != null && styleSheet.name == name)
-			{
-				element.styleSheets.Add(styleSheet);
-				return;
-			}
+				return styleSheet;
+		}
+
+		return null;
+	}
+
+	public static void AddStyleSheet(this VisualElement element, string name)
+	{
+		var styleSheet = GetStyleSheet(name);
+		if(styleSheet != null)
+		{
+			element.styleSheets.Add(styleSheet);
+			return;
 		}
 	}
 

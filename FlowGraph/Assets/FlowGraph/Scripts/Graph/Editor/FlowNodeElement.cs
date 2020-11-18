@@ -13,6 +13,8 @@ public class FlowNodeElement : Node
 
 	private VisualElement contents = null;
 
+	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
+
 	public FlowNodeElement(FlowGraphView graphView, FlowNode node)
 	{
 		this.graphView = graphView;
@@ -55,6 +57,7 @@ public class FlowNodeElement : Node
 		foreach (var effect in node.effects)
 		{
 			var effectElement = new FlowEffectElement(this, effect);
+			effectElement.OnEffectSelected += (e) => OnEffectSelected(e);
 			contents.Add(effectElement);
 		}
 
@@ -81,6 +84,7 @@ public class FlowNodeElement : Node
 		node.effects.Add(effect);
 
 		var effectElement = new FlowEffectElement(this, effect);
+		effectElement.OnEffectSelected += (e) => OnEffectSelected(e);
 		contents.Insert(contents.childCount - 1, effectElement);
 	}
 }
