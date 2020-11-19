@@ -16,7 +16,7 @@ MonoBehaviour:
   nodes:
   - id: 1
     name: Node
-    position: {x: 83.600006, y: 145.12442}
+    position: {x: 203, y: 158.59999}
     effects:
     - nextNodeID: -1
       sequenceMode: 0
@@ -32,11 +32,10 @@ MonoBehaviour:
       sequenceMode: 0
       wait: 0
       function:
-        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
-        module: FlowModule_Core
-        function: WaitForSeconds
-        arguments:
-        - id: 1
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
         outcomes: []
     - nextNodeID: -1
       sequenceMode: 0
@@ -49,29 +48,7 @@ MonoBehaviour:
         outcomes: []
   - id: 0
     name: Node1
-    position: {x: 552.3001, y: 408.80002}
-    effects:
-    - nextNodeID: 2
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: 3
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 2
-    name: Node2
-    position: {x: 542.8001, y: 32.171207}
+    position: {x: 614, y: 151}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
@@ -82,9 +59,45 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-  - id: 3
-    name: Node3
-    position: {x: 851, y: 241}
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+  - id: 2
+    name: Node2
+    position: {x: 671, y: 406}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
@@ -103,9 +116,3 @@ MonoBehaviour:
         name: time
         type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
         value: 3
-    00000001:
-      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
-      data:
-        name: time
-        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-        value: 0

@@ -77,7 +77,7 @@ public class FlowNodeElement : Node
 
 		Button addEffectButton = addEffectRow.Query<Button>();
 		addEffectButton.clicked += AddEffectButton_Clicked;
-		addEffectButton.text = "+";
+		addEffectButton.text = "Add Effect";
 
 		Add(contents);
 
