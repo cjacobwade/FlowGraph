@@ -9,6 +9,9 @@ using System.Reflection;
 
 public class FlowPort : Port
 {
+	public event Action<FlowPort, Edge> OnPortConnected = delegate {};
+	public event Action<FlowPort, Edge> OnPortDisconnected = delegate { };
+
 	private FlowPort(Orientation orientation, Direction direction, Capacity capacity, Type type) : 
 		base(orientation, direction, capacity, type)
 	{
@@ -28,32 +31,15 @@ public class FlowPort : Port
 		return port;
 	}
 
-	public override void OnStartEdgeDragging()
+	public override void Connect(Edge edge)
 	{
-		base.OnStartEdgeDragging();
-
-		if (m_EdgeConnector.edgeDragHelper.draggedPort == this)
-		{
-			Debug.Log("start");
-		}
+		base.Connect(edge);
+		OnPortConnected(this, edge);
 	}
 
-	public override void OnStopEdgeDragging()
+	public override void Disconnect(Edge edge)
 	{
-		base.OnStopEdgeDragging();
-
-		if (m_EdgeConnector.edgeDragHelper.draggedPort == this)
-		{
-			if(m_EdgeConnector.edgeDragHelper.edgeCandidate == null)
-			{
-				Debug.Log("no edge candidate");
-			}
-			else if (m_EdgeConnector.edgeDragHelper.edgeCandidate.output != null)
-			{
-				Debug.Log("has output");
-			}
-			
-			Debug.Log("stop");
-		}
+		base.Disconnect(edge);
+		OnPortDisconnected(this, edge);
 	}
 }

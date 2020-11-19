@@ -19,7 +19,7 @@ public class FlowEffect
 
 	public int nextNodeID = -1;
 
-	public SequenceMode sequenceMode = SequenceMode.AfterPrev;
+	public SequenceMode sequenceMode = SequenceMode.After;
 	public float wait = 0f;
 
 	public ModuleFunction function = new ModuleFunction();

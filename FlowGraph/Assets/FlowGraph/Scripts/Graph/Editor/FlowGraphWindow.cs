@@ -12,10 +12,12 @@ public class FlowGraphWindow : EditorWindow
 
 	public FlowGraphView graphView = null;
 
-	private SerializedObject so = null;
+	private SerializedObject serializedObject = null;
+	public SerializedObject SerializedObject => serializedObject;
+
 	private PropertyField propertyField = null;
 
-	private FlowEffectElement selectedEffectRow = null;
+	private FlowEffectElement selectedEffectElement = null;
 
 	private StyleSheet selectedStyle = null;
 
@@ -34,6 +36,8 @@ public class FlowGraphWindow : EditorWindow
 			return;
 
 		this.flowGraph = flowGraph;
+
+		serializedObject = new SerializedObject(flowGraph);
 
 		rootVisualElement.AddStyleSheet("FlowGraph");
 
@@ -65,13 +69,9 @@ public class FlowGraphWindow : EditorWindow
 		button.clicked += EffectButton_OnClicked;
 
 		VisualElement inspector = inspectorRoot.Query<VisualElement>(className:"flow-inspector-content");
-
 		propertyField = new PropertyField();
 		propertyField.StretchToParentSize();
-
-		so = new SerializedObject(flowGraph);
-		propertyField.Bind(so);
-
+		propertyField.Bind(serializedObject);
 		inspector.Add(propertyField);
 
 		rootVisualElement.MarkDirtyRepaint();
@@ -79,12 +79,12 @@ public class FlowGraphWindow : EditorWindow
 
 	private void GraphView_OnEffectSelected(FlowEffectElement effectRot)
 	{
-		if(selectedEffectRow != null)
-			selectedEffectRow.styleSheets.Remove(selectedStyle);
+		if(selectedEffectElement != null)
+			selectedEffectElement.styleSheets.Remove(selectedStyle);
 
-		selectedEffectRow = effectRot;
+		selectedEffectElement = effectRot;
 
-		var effectProp = FindEffectProperty();
+		var effectProp = selectedEffectElement.FindEffectProperty();
 		if (effectProp != null)
 		{
 			effectProp.isExpanded = true;
@@ -95,34 +95,13 @@ public class FlowGraphWindow : EditorWindow
 
 			propertyField.BindProperty(effectProp);
 
-			var effect = selectedEffectRow.effect;
+			var effect = selectedEffectElement.effect;
 			string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
 			propertyField.label = label;
 		}
 
-		if (selectedEffectRow != null)
-			selectedEffectRow.styleSheets.Add(selectedStyle);
-	}
-
-	private SerializedProperty FindEffectProperty()
-	{
-		if (selectedEffectRow == null || selectedEffectRow.effect == null)
-			return null;
-
-		var sp = so.GetIterator();
-		while (sp.Next(true))
-		{
-			if (sp.type == "FlowEffect")
-			{
-				FlowEffect effect = EditorUtils.GetTargetObjectOfProperty(sp) as FlowEffect;
-				if (effect != null && effect == selectedEffectRow.effect)
-				{
-					return sp;
-				}
-			}
-		}
-
-		return null;
+		if (selectedEffectElement != null)
+			selectedEffectElement.styleSheets.Add(selectedStyle);
 	}
 
 	private void EffectButton_OnClicked()

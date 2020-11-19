@@ -18,8 +18,9 @@ MonoBehaviour:
     name: Start
     position: {x: 100, y: 100}
     effects:
-    - nextNodeID: -1
-      sequenceMode: 0
+    - nextNodeID: 2
+      sequenceMode: 2
+      wait: 0
       function:
         context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
         module: FlowModule_Core
@@ -27,8 +28,9 @@ MonoBehaviour:
         arguments:
         - id: 0
         outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
+    - nextNodeID: 2
+      sequenceMode: 1
+      wait: 0
       function:
         context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
@@ -38,6 +40,7 @@ MonoBehaviour:
         outcomes: []
     - nextNodeID: -1
       sequenceMode: 0
+      wait: 0
       function:
         context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
         module: FlowModule_Core
@@ -45,16 +48,18 @@ MonoBehaviour:
         arguments:
         - id: 2
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 2
       sequenceMode: 0
+      wait: 0
       function:
         context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
         function: StopAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 2
       sequenceMode: 0
+      wait: 0
       function:
         context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
         module: FlowModule_Animation
@@ -62,7 +67,8 @@ MonoBehaviour:
         arguments: []
         outcomes: []
     - nextNodeID: -1
-      sequenceMode: 0
+      sequenceMode: 1
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Core
@@ -71,7 +77,17 @@ MonoBehaviour:
         - id: 3
         outcomes: []
     - nextNodeID: -1
-      sequenceMode: 0
+      sequenceMode: 1
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 1
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Animation
@@ -80,6 +96,16 @@ MonoBehaviour:
         outcomes: []
     - nextNodeID: -1
       sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Animation
@@ -88,6 +114,7 @@ MonoBehaviour:
         outcomes: []
     - nextNodeID: -1
       sequenceMode: 0
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Animation
@@ -96,18 +123,20 @@ MonoBehaviour:
         outcomes: []
   - id: 1
     name: Node
-    position: {x: 356, y: 90}
+    position: {x: 440.63998, y: -31.068989}
     effects:
-    - nextNodeID: -1
+    - nextNodeID: 2
       sequenceMode: 0
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Animation
         function: PlayAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 2
       sequenceMode: 0
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Animation
@@ -116,10 +145,24 @@ MonoBehaviour:
         outcomes: []
   - id: 2
     name: Node1
-    position: {x: 403, y: 151}
+    position: {x: 546.9451, y: 149.40675}
+    effects:
+    - nextNodeID: 3
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+  - id: 3
+    name: Node2
+    position: {x: 486.0398, y: 380.34277}
     effects:
     - nextNodeID: -1
-      sequenceMode: 0
+      sequenceMode: 2
+      wait: 0
       function:
         context: {fileID: 0}
         module: FlowModule_Animation

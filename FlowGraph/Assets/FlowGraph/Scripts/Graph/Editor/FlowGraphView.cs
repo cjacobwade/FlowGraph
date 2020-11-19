@@ -11,6 +11,8 @@ public class FlowGraphView : GraphView
 	public FlowGraphWindow window = null;
 	public FlowGraph flowGraph = null;
 
+	protected SerializedObject SerializedObject => window.SerializedObject;
+
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
 
 	public FlowGraphView(FlowGraphWindow window, FlowGraph flowGraph)
@@ -35,6 +37,25 @@ public class FlowGraphView : GraphView
 			nodeElement.OnEffectSelected += (e) => OnEffectSelected(e);
 			AddElement(nodeElement);
 		}
+
+		// Wire up connections
+		this.Query<FlowNodeElement>().ForEach((n) =>
+		{
+			n.Query<FlowEffectElement>().ForEach((e) =>
+			{
+				int nextNodeId = e.effect.nextNodeID;
+				if(nextNodeId != -1)
+				{
+					FlowPort effectPort = e.Query<FlowPort>();
+					FlowPort nextNodePort = this.Query<FlowNodeElement>()
+						.Where((n2) => nextNodeId == n2.node.id)
+						.First()
+						.Query<FlowPort>();
+					
+					Add(effectPort.ConnectTo(nextNodePort));
+				}
+			});
+		});
 
 		deleteSelection = OnDeletedSelection;
 		graphViewChanged = OnGraphViewChanged;

@@ -51,3 +51,16 @@ FlowNodeElement {
 	margin-top:0px;
 	margin-bottom:0px;
 }
+
+#flow-node-effect-time {
+	flex-grow:1; 
+	justify-content:center;
+	width:100%;
+	height:auto;
+}
+
+#flow-node-effect-after {
+	flex-shrink:0;
+	flex-grow:1;
+	-unity-text-align:middle-left;
+}

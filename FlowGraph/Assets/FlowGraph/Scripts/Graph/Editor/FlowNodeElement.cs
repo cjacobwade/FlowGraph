@@ -13,6 +13,8 @@ public class FlowNodeElement : Node
 
 	private VisualElement contents = null;
 
+	protected SerializedObject SerializedObject => graphView.window.SerializedObject;
+
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
 
 	public FlowNodeElement(FlowGraphView graphView, FlowNode node)
@@ -73,6 +75,12 @@ public class FlowNodeElement : Node
 		MarkDirtyRepaint();
 	}
 
+	public override void SetPosition(Rect newPos)
+	{
+		base.SetPosition(newPos);
+		node.position = new Vector2(newPos.x, newPos.y);
+	}
+
 	private void AddEffectButton_Clicked()
 	{
 		AddEffect();
@@ -81,7 +89,10 @@ public class FlowNodeElement : Node
 	private void AddEffect()
 	{
 		var effect = new FlowEffect();
+		effect.sequenceMode = FlowEffect.SequenceMode.AfterPrev;
 		node.effects.Add(effect);
+
+		SerializedObject.Update();
 
 		var effectElement = new FlowEffectElement(this, effect);
 		effectElement.OnEffectSelected += (e) => OnEffectSelected(e);
