@@ -10,92 +10,6 @@ using System.Linq;
 
 public class FlowPort : Port
 {
-	// Copied from decompile of regular port
-	private class FlowPortEdgeConnectorListener : IEdgeConnectorListener
-	{
-		private GraphView graphView = null;
-		private GraphViewChange graphViewChange = default;
-
-		private List<Edge> edgesToCreate = new List<Edge>();
-		private List<GraphElement> edgesToDelete = new List<GraphElement>();
-
-		public FlowPortEdgeConnectorListener(GraphView graphView)
-		{
-			this.graphView = graphView;
-			graphViewChange.edgesToCreate = edgesToCreate;
-		}
-
-		public void OnDropOutsidePort(Edge edge, Vector2 position)
-		{
-			FlowPort fromPort = edge.input as FlowPort;
-			if (fromPort == null)
-				fromPort = edge.output as FlowPort;
-
-			FlowPort toPort = null;
-			graphView.nodes.ForEach((n) =>
-			{
-				Vector2 localPos = VisualElementExtensions.WorldToLocal(n, position);
-				if (n.ContainsPoint(localPos) && (toPort == null || n.layer < toPort.node.layer))
-				{
-					toPort = n.Query<FlowPort>().Where((p) => p.direction != fromPort.direction);			
-				}
-			});
-
-			if(toPort != null)
-			{
-				if (edge.input == null)
-					edge.input = toPort;
-				else
-					edge.output = toPort;
-
-				OnDrop(graphView, edge);
-			}
-		}
-
-		public void OnDrop(GraphView graphView, Edge edge)
-		{
-			edgesToCreate.Clear();
-			edgesToCreate.Add(edge);
-
-			edgesToDelete.Clear();
-
-			if (edge.input.capacity == Capacity.Single)
-			{
-				foreach (Edge connection in edge.input.connections)
-				{
-					if (connection != edge)
-						edgesToDelete.Add(connection);
-				}
-			}
-
-			if (edge.output.capacity == Capacity.Single)
-			{
-				foreach (Edge connection2 in edge.output.connections)
-				{
-					if (connection2 != edge)
-						edgesToDelete.Add(connection2);
-				}
-			}
-
-			if (edgesToDelete.Count > 0)
-				graphView.DeleteElements(edgesToDelete);
-
-			List<Edge> tempEdgesToCreate = edgesToCreate;
-			if (graphView.graphViewChanged != null)
-			{
-				var graphViewChange = graphView.graphViewChanged(this.graphViewChange);
-				tempEdgesToCreate = graphViewChange.edgesToCreate;
-			}
-
-			foreach (Edge item in tempEdgesToCreate)
-			{
-				graphView.AddElement(item);
-				edge.input.Connect(item);
-				edge.output.Connect(item);
-			}
-		}
-	}
-
 	public class FlowEdgeDragHelper : EdgeDragHelper<Edge>
 	{
 		public FlowEdgeDragHelper(IEdgeConnectorListener listener) : base(listener)
@@ -104,6 +18,39 @@ public class FlowPort : Port
 			listenerField.SetValue(this, listener);
 			resetPositionOnPan = true;
 			Reset(false);
+		}
+		
+		public Port GetEndPoint_NodesAccepted(Vector2 mousePosition)
+		{
+			Port myPort = draggedPort;
+			Port otherPort = null;
+
+			if (myPort.direction == Direction.Input)
+			{
+				MethodInfo getEndPortMethod = GetType().BaseType.GetMethod("GetEndPort", BindingFlags.Instance | BindingFlags.NonPublic);
+				otherPort = getEndPortMethod.Invoke(this, new object[] { mousePosition }) as Port;
+
+				return otherPort;
+			}
+			else if (myPort.direction == Direction.Output)
+			{
+				m_GraphView.ports.ForEach(p =>
+				{
+					if (p.direction != myPort.direction && 
+						p.orientation == myPort.orientation)
+					{
+						Vector2 localPos = VisualElementExtensions.WorldToLocal(p.node, mousePosition);
+						if(p.node.ContainsPoint(localPos) && (otherPort == null || otherPort.node.layer > p.node.layer))
+						{
+							otherPort = p;
+						}
+					}
+				});
+
+				return otherPort;
+			}
+
+			return null;
 		}
 
 		public override void HandleMouseUp(MouseUpEvent evt)
@@ -133,12 +80,27 @@ public class FlowPort : Port
 				ghostEdge = null;
 			}
 
-			MethodInfo getEndPortMethod = GetType().BaseType.GetMethod("GetEndPort", BindingFlags.Instance | BindingFlags.NonPublic);
-			Port endPort = getEndPortMethod.Invoke(this, new object[] { mousePosition }) as Port;
-
+			Port endPort = GetEndPoint_NodesAccepted(mousePosition);
 			if (endPort == null && m_Listener != null)
 			{
 				m_Listener.OnDropOutsidePort(edgeCandidate, mousePosition);
+
+				if (draggedPort.direction == Direction.Output)
+				{
+					Edge edgeToDelete = null;
+					m_GraphView.edges.ForEach((e) =>
+					{
+						if (e.output == draggedPort && e.input != null)
+							edgeToDelete = e;
+					});
+					if (edgeToDelete != null)
+					{
+						draggedPort.Disconnect(edgeToDelete);
+						draggedPort.portCapLit = false;
+
+						m_GraphView.RemoveElement(edgeToDelete);
+					}
+				}
 			}
 			edgeCandidate.SetEnabled(true);
 			if (edgeCandidate.input != null)
@@ -211,9 +173,12 @@ public class FlowPort : Port
 
 	public static FlowPort Create(Orientation orientation, Direction direction, Capacity capacity, Type type, GraphView graphView)
 	{
+		var listenerType = typeof(Port).GetNestedType("DefaultEdgeConnectorListener", BindingFlags.NonPublic | BindingFlags.Instance);
+		object listener = Activator.CreateInstance(listenerType);
+
 		FlowPort port = new FlowPort(orientation, direction, capacity, type)
 		{
-			m_EdgeConnector = new FlowEdgeConnector(new FlowPortEdgeConnectorListener(graphView))
+			m_EdgeConnector = new FlowEdgeConnector(listener as IEdgeConnectorListener)
 		};
 
 		port.AddManipulator(port.m_EdgeConnector);
