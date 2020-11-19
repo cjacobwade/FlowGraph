@@ -87,7 +87,10 @@ public class FlowNodeElement : Node
 	public override void SetPosition(Rect newPos)
 	{
 		base.SetPosition(newPos);
+
+		Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Move Node");
 		node.position = new Vector2(newPos.x, newPos.y);
+		SerializedObject.Update();
 	}
 
 	private void AddEffectButton_Clicked()
@@ -97,14 +100,16 @@ public class FlowNodeElement : Node
 
 	private void AddEffect()
 	{
+		Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Add Effect");
+
 		var effect = new FlowEffect();
 		effect.sequenceMode = FlowEffect.SequenceMode.AfterPrev;
 		node.effects.Add(effect);
 
-		SerializedObject.Update();
-
 		var effectElement = new FlowEffectElement(this, effect);
 		effectElement.OnEffectSelected += (e) => OnEffectSelected(e);
 		contents.Insert(contents.childCount - 1, effectElement);
+
+		SerializedObject.Update();
 	}
 }

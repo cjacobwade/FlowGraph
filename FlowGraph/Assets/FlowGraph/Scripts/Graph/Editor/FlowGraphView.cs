@@ -10,7 +10,6 @@ public class FlowGraphView : GraphView
 {
 	public FlowGraphWindow window = null;
 	public FlowGraph flowGraph = null;
-
 	protected SerializedObject SerializedObject => window.SerializedObject;
 
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
@@ -32,11 +31,7 @@ public class FlowGraphView : GraphView
 			AddNode(Vector2.one * 100, "Start");
 
 		foreach (var node in flowGraph.nodes)
-		{
-			var nodeElement = new FlowNodeElement(this, node);
-			nodeElement.OnEffectSelected += (e) => OnEffectSelected(e);
-			AddElement(nodeElement);
-		}
+			AddNodeElement(node);
 
 		// Wire up connections
 		this.Query<FlowNodeElement>().ForEach((n) =>
@@ -79,18 +74,31 @@ public class FlowGraphView : GraphView
 		});
 	}
 
-	private void AddNode(Vector2 mousePosition, string name = null)
+	private FlowNode AddNode(Vector2 mousePosition, string name = null)
 	{
 		FlowNode node = new FlowNode(mousePosition);
 		node.name = string.IsNullOrEmpty(name) ? GetUnusedDefaultNodeName() : name;
 		node.id = GetUnusedNodeID();
 
 		flowGraph.nodes.Add(node);
+		SerializedObject.Update();
+
+		return node;
 	}
 
 	private void ContextMenu_AddNode(DropdownMenuAction dropdownMenuAction)
 	{
-		AddNode(dropdownMenuAction.eventInfo.mousePosition);
+		Undo.RegisterCompleteObjectUndo(flowGraph, "Add Node");
+
+		FlowNode node = AddNode(dropdownMenuAction.eventInfo.mousePosition);
+		AddNodeElement(node);
+	}
+
+	private void AddNodeElement(FlowNode node)
+	{
+		var nodeElement = new FlowNodeElement(this, node);
+		nodeElement.OnEffectSelected += (e) => OnEffectSelected(e);
+		AddElement(nodeElement);
 	}
 
 	private string GetUnusedDefaultNodeName()
@@ -149,8 +157,9 @@ public class FlowGraphView : GraphView
 
 	private void OnDeletedSelection(string operationName, AskUser askUser)
 	{
-		List<FlowNodeElement> elementsToRemove = new List<FlowNodeElement>();
+		Undo.RegisterCompleteObjectUndo(flowGraph, "Deleted Graph Elements");
 
+		List<FlowNodeElement> elementsToRemove = new List<FlowNodeElement>();
 		foreach (var selectable in selection)
 		{
 			if(selectable is FlowNodeElement node)
@@ -169,15 +178,13 @@ public class FlowGraphView : GraphView
 			}
 		});
 
-		Undo.RegisterCompleteObjectUndo(flowGraph, "Deleted Graph Elements");
-
 		for (int i = 0; i < connectionsToRemove.Count; i++)
 		{
 			var edge = connectionsToRemove[i];
 			edge.output.Disconnect(edge);
 			edge.input.Disconnect(edge);
 
-			edge.RemoveFromHierarchy();
+			RemoveElement(edge);
 		}
 
 		for (int i = 0; i < elementsToRemove.Count; i++)
@@ -189,6 +196,8 @@ public class FlowGraphView : GraphView
 		}
 
 		selection.Clear();
+		SerializedObject.Update();
+
 		MarkDirtyRepaint();
 	}
 

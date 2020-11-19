@@ -28,6 +28,7 @@ public class FlowEffectElement : VisualElement
 		Button button = rowRoot.Query<Button>(className:"flow-node-row-effect-button");
 		button.clicked += EffectButton_OnClicked;
 
+		SerializedObject.Update();
 		var effectProperty = FindEffectProperty();
 
 		VisualElement afterParent = rowRoot.Query<VisualElement>(className: "flow-node-effect-after-parent");
@@ -60,6 +61,8 @@ public class FlowEffectElement : VisualElement
 
 	private void Port_OnPortConnected(FlowPort port, Edge edge)
 	{
+		Undo.RegisterCompleteObjectUndo(this.nodeElement.graphView.flowGraph, "Connected Port");
+
 		var nodeElement = edge.input.node as FlowNodeElement;
 		effect.nextNodeID = nodeElement.node.id;
 
@@ -68,8 +71,8 @@ public class FlowEffectElement : VisualElement
 
 	private void Port_OnPortDisconnected(FlowPort port, Edge edge)
 	{
+		Undo.RegisterCompleteObjectUndo(this.nodeElement.graphView.flowGraph, "Disconnect Port");
 		effect.nextNodeID = -1;
-
 		SerializedObject.Update();
 	}
 

@@ -35,6 +35,11 @@ public class FlowGraphWindow : EditorWindow
 		if (flowGraph == null)
 			return;
 
+		rootVisualElement.Clear();
+
+		Undo.undoRedoPerformed -= Undo_OnUndoRedo;
+		Undo.undoRedoPerformed += Undo_OnUndoRedo;
+
 		this.flowGraph = flowGraph;
 
 		serializedObject = new SerializedObject(flowGraph);
@@ -75,6 +80,18 @@ public class FlowGraphWindow : EditorWindow
 		inspector.Add(propertyField);
 
 		rootVisualElement.MarkDirtyRepaint();
+	}
+
+	private void Undo_OnUndoRedo()
+	{
+		SerializedObject.Update();
+
+		Vector3 pos = graphView.contentViewContainer.transform.position;
+		Vector3 scale = graphView.contentViewContainer.transform.scale;
+
+		OnEnable();
+
+		graphView.UpdateViewTransform(pos, scale);
 	}
 
 	private void GraphView_OnEffectSelected(FlowEffectElement effectRot)
