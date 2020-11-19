@@ -11,7 +11,9 @@ public class FlowGraphWindow : EditorWindow
 	public FlowGraph flowGraph = null;
 
 	public FlowGraphView graphView = null;
-	public IMGUIContainer inspector = null;
+
+	private SerializedObject so = null;
+	private PropertyField propertyField = null;
 
 	private FlowEffectElement selectedEffectRow = null;
 
@@ -62,8 +64,15 @@ public class FlowGraphWindow : EditorWindow
 		button.text = "Effect";
 		button.clicked += EffectButton_OnClicked;
 
-		inspector = inspectorRoot.Query<IMGUIContainer>(className:"unity-imgui-container");
-		inspector.onGUIHandler = Inspector_OnGUI;
+		VisualElement inspector = inspectorRoot.Query<VisualElement>(className:"flow-inspector-content");
+
+		propertyField = new PropertyField();
+		propertyField.StretchToParentSize();
+
+		so = new SerializedObject(flowGraph);
+		propertyField.Bind(so);
+
+		inspector.Add(propertyField);
 
 		rootVisualElement.MarkDirtyRepaint();
 	}
@@ -75,36 +84,45 @@ public class FlowGraphWindow : EditorWindow
 
 		selectedEffectRow = effectRot;
 
+		var effectProp = FindEffectProperty();
+		if (effectProp != null)
+		{
+			effectProp.isExpanded = true;
+
+			var iter = effectProp.Copy();
+			while (iter.Next(true))
+				iter.isExpanded = true;
+
+			propertyField.BindProperty(effectProp);
+
+			var effect = selectedEffectRow.effect;
+			string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
+			propertyField.label = label;
+		}
+
 		if (selectedEffectRow != null)
 			selectedEffectRow.styleSheets.Add(selectedStyle);
 	}
 
-	private void Inspector_OnGUI()
+	private SerializedProperty FindEffectProperty()
 	{
-		SerializedObject so = new SerializedObject(flowGraph);
+		if (selectedEffectRow == null || selectedEffectRow.effect == null)
+			return null;
 
 		var sp = so.GetIterator();
 		while (sp.Next(true))
 		{
-			if(sp.type == "FlowEffect")
+			if (sp.type == "FlowEffect")
 			{
 				FlowEffect effect = EditorUtils.GetTargetObjectOfProperty(sp) as FlowEffect;
-				if(	effect != null && selectedEffectRow != null &&
-					effect == selectedEffectRow.effect)
+				if (effect != null && effect == selectedEffectRow.effect)
 				{
-					var sp2 = sp.Copy();
-					while (sp2.Next(true))
-					{
-						if(!sp2.isExpanded)
-							sp2.isExpanded = true; 
-					}
-
-					sp.isExpanded = true;
-					EditorGUILayout.PropertyField(sp, new GUIContent(string.Format("{0} - {1}", selectedEffectRow.nodeElement.title, sp.displayName)), true);
-					return;
+					return sp;
 				}
 			}
 		}
+
+		return null;
 	}
 
 	private void EffectButton_OnClicked()
