@@ -134,8 +134,8 @@ public class FlowPort : Port
 			}
 
 			MethodInfo getEndPortMethod = GetType().BaseType.GetMethod("GetEndPort", BindingFlags.Instance | BindingFlags.NonPublic);
-
 			Port endPort = getEndPortMethod.Invoke(this, new object[] { mousePosition }) as Port;
+
 			if (endPort == null && m_Listener != null)
 			{
 				m_Listener.OnDropOutsidePort(edgeCandidate, mousePosition);
