@@ -11,7 +11,13 @@ public class FlowNodeElement : Node
 	public FlowGraphView graphView = null;
 	public FlowNode node = null;
 
+	private FlowPort inputPort = null;
+	public FlowPort InputPort => inputPort;
+
 	private VisualElement contents = null;
+
+	private bool hasMouse = false;
+	public bool HasMouse => hasMouse;
 
 	protected SerializedObject SerializedObject => graphView.window.SerializedObject;
 
@@ -33,11 +39,14 @@ public class FlowNodeElement : Node
 
 		SetPosition(new Rect(node.position.x, node.position.y, 0, 0));
 
-		FlowPort port = FlowPort.Create(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(FlowNode));
-		port.portName = string.Empty;
+		RegisterCallback<MouseEnterEvent>((evt) => hasMouse = true);
+		RegisterCallback<MouseLeaveEvent>((evt) => hasMouse = false);
+
+		inputPort = FlowPort.Create(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(FlowNode), graphView);
+		inputPort.portName = string.Empty;
 
 		VisualElement portRoot = this.Query<VisualElement>("title");
-		portRoot.Insert(0, port);
+		portRoot.Insert(0, inputPort);
 
 		VisualElement titleLabel = this.Query<VisualElement>("title-label");
 		titleLabel.style.unityTextAlign = TextAnchor.MiddleCenter;

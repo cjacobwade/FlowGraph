@@ -49,7 +49,7 @@ public class FlowEffectElement : VisualElement
 
 		button.text = string.Format("{0}.{1}", module, function);
 
-		FlowPort port = FlowPort.Create(Orientation.Horizontal, Direction.Output, Port.Capacity.Single, typeof(FlowNode));
+		FlowPort port = FlowPort.Create(Orientation.Horizontal, Direction.Output, Port.Capacity.Single, typeof(FlowNode), nodeElement.graphView);
 		port.portName = string.Empty;
 		port.OnPortConnected += Port_OnPortConnected;
 		port.OnPortDisconnected += Port_OnPortDisconnected;

@@ -16,9 +16,9 @@ MonoBehaviour:
   nodes:
   - id: 0
     name: Start
-    position: {x: 100, y: 100}
+    position: {x: -38.171375, y: 59.51651}
     effects:
-    - nextNodeID: 2
+    - nextNodeID: -1
       sequenceMode: 2
       wait: 0
       function:
@@ -28,8 +28,8 @@ MonoBehaviour:
         arguments:
         - id: 0
         outcomes: []
-    - nextNodeID: 2
-      sequenceMode: 1
+    - nextNodeID: 1
+      sequenceMode: 0
       wait: 0
       function:
         context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
@@ -38,7 +38,7 @@ MonoBehaviour:
         arguments:
         - id: 1
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
@@ -48,7 +48,7 @@ MonoBehaviour:
         arguments:
         - id: 2
         outcomes: []
-    - nextNodeID: 2
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
@@ -57,7 +57,7 @@ MonoBehaviour:
         function: StopAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: 2
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
@@ -66,7 +66,7 @@ MonoBehaviour:
         function: StopAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 1
       wait: 0
       function:
@@ -76,7 +76,7 @@ MonoBehaviour:
         arguments:
         - id: 3
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 1
       wait: 0
       function:
@@ -85,7 +85,7 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 1
       wait: 0
       function:
@@ -94,7 +94,7 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
@@ -103,7 +103,7 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 2
       wait: 0
       function:
@@ -112,7 +112,7 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
@@ -125,7 +125,7 @@ MonoBehaviour:
     name: Node
     position: {x: 440.63998, y: -31.068989}
     effects:
-    - nextNodeID: 2
+    - nextNodeID: 3
       sequenceMode: 0
       wait: 0
       function:
@@ -145,9 +145,9 @@ MonoBehaviour:
         outcomes: []
   - id: 2
     name: Node1
-    position: {x: 546.9451, y: 149.40675}
+    position: {x: 754.3725, y: 193.73248}
     effects:
-    - nextNodeID: 3
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
@@ -160,7 +160,7 @@ MonoBehaviour:
     name: Node2
     position: {x: 486.0398, y: 380.34277}
     effects:
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 2
       wait: 0
       function:
