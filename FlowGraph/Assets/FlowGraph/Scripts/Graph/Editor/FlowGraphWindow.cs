@@ -18,6 +18,7 @@ public class FlowGraphWindow : EditorWindow
 	public SerializedObject SerializedObject => serializedObject;
 
 	private PropertyField propertyField = null;
+	public PropertyField PropertyField => propertyField;
 
 	private FlowEffectElement selectedEffectElement = null;
 
@@ -130,6 +131,7 @@ public class FlowGraphWindow : EditorWindow
 			else
 			{
 				propertyField.Unbind();
+				propertyField.bindingPath = string.Empty;
 			}
 
 			selectedEffectElement.styleSheets.Add(selectedStyle);

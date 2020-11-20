@@ -115,6 +115,7 @@ public class FlowEffectElement : VisualElement
 
 		Vector2 pos = evt.mousePosition - Vector2.up * layout.height - moveOffset;
 		movingElement.transform.position = pos;
+		movingElement.transform.scale = worldTransform.lossyScale;
 
 		graphView.Add(movingElement);
 
@@ -197,13 +198,22 @@ public class FlowEffectElement : VisualElement
 			{
 				if (prevParentNode != null)
 				{
+					int prevSiblingIndex = prevParentNode.Contents.IndexOf(this);
+					if( prevSiblingIndex == prevParentNode.node.effects.Count - 1)
+					{
+						// hack to fix error when dragging last effect out of node
+						var sp = graphView.SerializedObject.FindProperty("startNodeID");
+						graphView.window.PropertyField.BindProperty(sp);
+						graphView.window.PropertyField.label = string.Empty;
+					}
+
+					movingElement.Add(movingEffectElement);
+					nodeElement = null;
+
 					prevParentNode.node.effects.Remove(effect);
 					prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
 
-					nodeElement = null;
-					movingElement.Add(movingEffectElement);
-
-					Rebind();
+					OnEffectSelected(this);
 
 					prevParentNode.MarkDirtyRepaint();
 				}
@@ -263,6 +273,8 @@ public class FlowEffectElement : VisualElement
 
 	public SerializedProperty FindEffectProperty()
 	{
+		graphView.SerializedObject.Update();
+
 		var sp = graphView.SerializedObject.GetIterator();
 		while (sp.Next(true))
 		{
