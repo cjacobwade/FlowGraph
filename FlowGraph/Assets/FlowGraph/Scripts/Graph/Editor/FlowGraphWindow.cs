@@ -5,6 +5,8 @@ using UnityEditor;
 using UnityEditor.Experimental.GraphView; 
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using System.Reflection;
+using System;
 
 public class FlowGraphWindow : EditorWindow
 {
@@ -36,6 +38,7 @@ public class FlowGraphWindow : EditorWindow
 			return;
 
 		rootVisualElement.Clear();
+		rootVisualElement.name = "flow-root";
 
 		Undo.undoRedoPerformed -= Undo_OnUndoRedo;
 		Undo.undoRedoPerformed += Undo_OnUndoRedo;
@@ -63,7 +66,15 @@ public class FlowGraphWindow : EditorWindow
 		// Inspector
 		VisualElement inspectorRoot = UIElementUtils.CreateElementByName<VisualElement>("FlowInspector");
 		inspectorRoot.name = "flow-inspector-root";
-		frameView.Add(inspectorRoot);
+
+		// BLah this is not working
+		var resizerType = typeof(GraphElement).Assembly.GetType("UnityEditor.Experimental.GraphView.ElementResizer");
+		var resizerConstructor = resizerType.GetConstructor(new Type[] { typeof(VisualElement), typeof(ResizerDirection) });
+		var resizer = resizerConstructor.Invoke(new object[] { inspectorRoot, ResizerDirection.Left });
+
+		inspectorRoot.AddManipulator(resizer as IManipulator);
+
+		rootVisualElement.Add(inspectorRoot);
 
 		VisualElement buttonRoot = UIElementUtils.CreateElementByName<VisualElement>("FlowInspectorHeaderButton");
 		VisualElement header = inspectorRoot.Query<VisualElement>(className: "flow-inspector-header-row");

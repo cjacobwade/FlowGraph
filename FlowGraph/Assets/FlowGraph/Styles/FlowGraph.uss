@@ -38,9 +38,10 @@ FlowNodeElement {
 	width:100%;
 }
 
-#FlowInspector {
+#flow-inspector-root {
 	width: 300px;
 	height: 100%;
+	cursor:resize-up-left;
 }
 
 #FlowNodeRow {
@@ -63,4 +64,10 @@ FlowNodeElement {
 	flex-shrink:0;
 	flex-grow:1;
 	-unity-text-align:middle-left;
+}
+
+
+
+#flow-root {
+	flex-direction:row;
 }
