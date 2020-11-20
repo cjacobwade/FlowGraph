@@ -15,11 +15,12 @@ public class FlowNodeElement : Node
 	public FlowPort InputPort => inputPort;
 
 	private VisualElement contents = null;
+	public VisualElement Contents => contents;
 
 	private bool hasMouse = false;
 	public bool HasMouse => hasMouse;
 
-	protected SerializedObject SerializedObject => graphView.window.SerializedObject;
+	public SerializedObject SerializedObject => graphView.window.SerializedObject;
 
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
 
@@ -80,8 +81,6 @@ public class FlowNodeElement : Node
 		addEffectButton.text = "Add Effect";
 
 		Add(contents);
-
-		MarkDirtyRepaint();
 	}
 
 	public override void SetPosition(Rect newPos)
@@ -90,7 +89,6 @@ public class FlowNodeElement : Node
 
 		Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Move Node");
 		node.position = new Vector2(newPos.x, newPos.y);
-		SerializedObject.Update();
 	}
 
 	private void AddEffectButton_Clicked()
@@ -109,7 +107,5 @@ public class FlowNodeElement : Node
 		var effectElement = new FlowEffectElement(this, effect);
 		effectElement.OnEffectSelected += (e) => OnEffectSelected(e);
 		contents.Insert(contents.childCount - 1, effectElement);
-
-		SerializedObject.Update();
 	}
 }

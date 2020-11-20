@@ -90,13 +90,11 @@ public class FlowGraphWindow : EditorWindow
 		propertyField.Bind(serializedObject);
 		inspector.Add(propertyField);
 
-		rootVisualElement.MarkDirtyRepaint();
+		FlowEffectElement.CancelMove();
 	}
 
 	private void Undo_OnUndoRedo()
 	{
-		SerializedObject.Update();
-
 		Vector3 pos = graphView.contentViewContainer.transform.position;
 		Vector3 scale = graphView.contentViewContainer.transform.scale;
 
@@ -112,24 +110,34 @@ public class FlowGraphWindow : EditorWindow
 
 		selectedEffectElement = effectRot;
 
-		var effectProp = selectedEffectElement.FindEffectProperty();
-		if (effectProp != null)
-		{
-			effectProp.isExpanded = true;
-
-			var iter = effectProp.Copy();
-			while (iter.Next(true))
-				iter.isExpanded = true;
-
-			propertyField.BindProperty(effectProp);
-
-			var effect = selectedEffectElement.effect;
-			string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
-			propertyField.label = label;
-		}
-
 		if (selectedEffectElement != null)
+		{
+			var effectProp = selectedEffectElement.FindEffectProperty();
+			if (effectProp != null)
+			{
+				effectProp.isExpanded = true;
+
+				var iter = effectProp.Copy();
+				while (iter.Next(true))
+					iter.isExpanded = true;
+
+				propertyField.BindProperty(effectProp);
+
+				var effect = selectedEffectElement.effect;
+				string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
+				propertyField.label = label;
+			}
+			else
+			{
+				propertyField.Unbind();
+			}
+
 			selectedEffectElement.styleSheets.Add(selectedStyle);
+		}
+		else
+		{
+			propertyField.Unbind();
+		}
 	}
 
 	private void EffectButton_OnClicked()

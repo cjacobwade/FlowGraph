@@ -99,8 +99,6 @@ public class ModuleFunctionDrawer : PropertyDrawer
 					}
 
 					EditorUtils.SetTargetObjectOfProperty(argsProp, arguments);
-
-					property.serializedObject.Update();
 				}
 			}
 

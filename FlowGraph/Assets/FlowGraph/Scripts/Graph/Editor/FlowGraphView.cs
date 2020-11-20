@@ -10,7 +10,7 @@ public class FlowGraphView : GraphView
 {
 	public FlowGraphWindow window = null;
 	public FlowGraph flowGraph = null;
-	protected SerializedObject SerializedObject => window.SerializedObject;
+	public SerializedObject SerializedObject => window.SerializedObject;
 
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
 
@@ -81,7 +81,6 @@ public class FlowGraphView : GraphView
 		node.id = GetUnusedNodeID();
 
 		flowGraph.nodes.Add(node);
-		SerializedObject.Update();
 
 		return node;
 	}
@@ -155,23 +154,14 @@ public class FlowGraphView : GraphView
 		return id;
 	}
 
-	private void OnDeletedSelection(string operationName, AskUser askUser)
+	private void DeleteNodes(ICollection<FlowNodeElement> nodeElements)
 	{
-		Undo.RegisterCompleteObjectUndo(flowGraph, "Deleted Graph Elements");
-
-		List<FlowNodeElement> elementsToRemove = new List<FlowNodeElement>();
-		foreach (var selectable in selection)
-		{
-			if(selectable is FlowNodeElement node)
-				elementsToRemove.Add(node);
-		}
-
 		List<Edge> connectionsToRemove = new List<Edge>();
 
 		ports.ForEach((p) =>
 		{
 			if (p.node is FlowNodeElement nodeElement &&
-				elementsToRemove.Contains(nodeElement) && p.connected)
+				nodeElements.Contains(nodeElement) && p.connected)
 			{
 				foreach (var connection in p.connections)
 					connectionsToRemove.Add(connection);
@@ -187,18 +177,27 @@ public class FlowGraphView : GraphView
 			RemoveElement(edge);
 		}
 
-		for (int i = 0; i < elementsToRemove.Count; i++)
+		foreach(var nodeElement in nodeElements)
 		{
-			var nodeElement = elementsToRemove[i];
-
 			RemoveElement(nodeElement);
 			flowGraph.nodes.Remove(nodeElement.node);
 		}
+	}
+
+	private void OnDeletedSelection(string operationName, AskUser askUser)
+	{
+		Undo.RegisterCompleteObjectUndo(flowGraph, "Deleted Graph Elements");
+
+		List<FlowNodeElement> elementsToRemove = new List<FlowNodeElement>();
+		foreach (var selectable in selection)
+		{
+			if(selectable is FlowNodeElement node)
+				elementsToRemove.Add(node);
+		}
+
+		DeleteNodes(elementsToRemove);
 
 		selection.Clear();
-		SerializedObject.Update();
-
-		MarkDirtyRepaint();
 	}
 
 	public override List<Port> GetCompatiblePorts(Port startPort, NodeAdapter nodeAdapter)
