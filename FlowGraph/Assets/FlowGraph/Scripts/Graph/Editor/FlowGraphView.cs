@@ -42,12 +42,18 @@ public class FlowGraphView : GraphView
 				if(nextNodeId != -1)
 				{
 					FlowPort effectPort = e.Query<FlowPort>();
-					FlowPort nextNodePort = this.Query<FlowNodeElement>()
-						.Where((n2) => nextNodeId == n2.node.id)
-						.First()
-						.Query<FlowPort>();
-					
-					Add(effectPort.ConnectTo(nextNodePort));
+					FlowPort nextNodePort = null;
+
+					this.Query<FlowNodeElement>().ForEach((n2) =>
+					{
+						if (nextNodeId == n2.node.id)
+							nextNodePort = n2.Query<FlowPort>();
+					});
+
+					if (nextNodePort != null)
+						Add(effectPort.ConnectTo(nextNodePort));
+					else
+						e.effect.nextNodeID = -1;
 				}
 			});
 		});

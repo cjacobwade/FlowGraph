@@ -33,6 +33,9 @@ public class FlowEffectElement : VisualElement
 
 	private EnumField enumField = null;
 	private FloatField timeField = null;
+	private Button button = null;
+
+	private BindableElement moduleFunctionField = null;
 
 	public FlowEffectElement(FlowNodeElement nodeElement, FlowEffect effect)
 	{
@@ -45,9 +48,6 @@ public class FlowEffectElement : VisualElement
 
 		VisualElement rowRoot = UIElementUtils.CreateElementByName<VisualElement>("FlowNodeRowWithEffect");
 		Add(rowRoot);
-
-		Button button = rowRoot.Query<Button>(className:"flow-node-row-effect-button");
-		button.clicked += EffectButton_OnClicked;
 
 		VisualElement selector = rowRoot.Query<VisualElement>(className: "flow-node-effect-handle");
 		selector.RegisterCallback<MouseDownEvent>(Selector_OnMouseDown);
@@ -67,7 +67,11 @@ public class FlowEffectElement : VisualElement
 		string module = effect.function.module.Replace("FlowModule_", "");
 		string function = effect.function.function;
 
+		button = rowRoot.Query<Button>(className: "flow-node-row-effect-button");
+		button.clicked += EffectButton_OnClicked;
 		button.text = string.Format("{0}.{1}", module, function);
+
+		moduleFunctionField = new TextField() as BindableElement;
 
 		outPort = FlowPort.Create(Orientation.Horizontal, Direction.Output, Port.Capacity.Single, typeof(FlowNode), nodeElement.graphView);
 		outPort.portName = string.Empty;
@@ -80,16 +84,27 @@ public class FlowEffectElement : VisualElement
 		Rebind();
 	}
 
+	private void OnModuleFunctionChanged(ChangeEvent<string> evt)
+	{
+		Debug.Log("Changed Function");
+	}
+
 	public void Rebind()
 	{
 		enumField.Unbind();
 		timeField.Unbind();
+
+		moduleFunctionField.Unbind();
+		//moduleFunctionField.UnregisterCallback(OnModuleFunctionChanged);
 
 		var effectProperty = FindEffectProperty();
 		if (effectProperty != null)
 		{
 			enumField.BindProperty(effectProperty.FindPropertyRelative("sequenceMode"));
 			timeField.BindProperty(effectProperty.FindPropertyRelative("wait"));
+
+// 			moduleFunctionField.BindProperty(effectProperty.FindPropertyRelative("function").FindPropertyRelative("function"));
+// 			moduleFunctionField.RegisterCallback((ChangeEvent<string> e) => Debug.Log("FUNC"));
 		}
 	}
 
@@ -149,20 +164,26 @@ public class FlowEffectElement : VisualElement
 
 				Vector2 nodeMousePos = VisualElementExtensions.WorldToLocal(newParentNode, evt.mousePosition);
 
+				int prevSiblingIndex = -1;
+				if (prevParentNode != null)
+					prevSiblingIndex = prevParentNode.Contents.IndexOf(this);
+
 				int siblingIndex = 0;
 				foreach(var e in otherEffects)
 				{
 					Rect nodeEffectRect = e.ChangeCoordinatesTo(newParentNode, new Rect(Vector2.zero, e.layout.size));
-					Vector2 nodeEffectPos = new Vector2(nodeEffectRect.x, nodeEffectRect.y + nodeEffectRect.height/2f);
+
+					Vector2 nodeEffectPos = new Vector2(nodeEffectRect.x, nodeEffectRect.y);
+					if (prevSiblingIndex > siblingIndex)
+						nodeEffectPos.y += nodeEffectRect.height;
+
 					if (nodeMousePos.y > nodeEffectPos.y)
 						siblingIndex++;
 				}
 
 				Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Effect Moved");
 
-				int prevSiblingIndex = -1;
-				if(prevParentNode != null)
-					prevSiblingIndex = prevParentNode.Contents.IndexOf(this);
+				
 
 				bool changingHierachy = prevParentNode != newParentNode || prevSiblingIndex != siblingIndex;
 

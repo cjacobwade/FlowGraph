@@ -16,18 +16,8 @@ MonoBehaviour:
   nodes:
   - id: 1
     name: Node
-    position: {x: 203, y: 158.59999}
+    position: {x: 861.8891, y: -41.60874}
     effects:
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
-        module: FlowModule_Core
-        function: WaitForSeconds
-        arguments:
-        - id: 0
-        outcomes: []
     - nextNodeID: 0
       sequenceMode: 0
       wait: 0
@@ -37,7 +27,68 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
+    - nextNodeID: 1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
     - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
+      function:
+        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
+        module: FlowModule_Core
+        function: StopAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments:
+        - id: 0
+        outcomes: []
+    - nextNodeID: 5
+      sequenceMode: 0
+      wait: 2335
+      function:
+        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
+        module: FlowModule_Animation
+        function: WaitForSeconds
+        arguments:
+        - id: 1
+        outcomes: []
+  - id: 2
+    name: Node2
+    position: {x: 872.3682, y: 169.75635}
+    effects:
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Core
+        function: WaitForSeconds
+        arguments:
+        - id: 2
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: 2
       sequenceMode: 0
       wait: 0
       function:
@@ -48,59 +99,20 @@ MonoBehaviour:
         outcomes: []
   - id: 0
     name: Node1
-    position: {x: 614, y: 151}
+    position: {x: 347.81854, y: 206.11568}
     effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 0
       function:
         context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
+        module: FlowModule_Core
+        function: WaitForSeconds
+        arguments:
+        - id: 3
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 2
-    name: Node2
-    position: {x: 671, y: 406}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
@@ -111,8 +123,27 @@ MonoBehaviour:
   references:
     version: 1
     00000000:
+      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
+      data:
+        name: clip
+        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        value: {fileID: 0}
+    00000001:
       type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
       data:
         name: time
         type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-        value: 3
+        value: 0.48
+    00000002:
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
+      data:
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 0
+    00000003:
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
+      data:
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 0

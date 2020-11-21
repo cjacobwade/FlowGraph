@@ -47,7 +47,7 @@ public static class EditorUtils
 		return obj;
 	}
 
-	public static void SetTargetObjectOfProperty(SerializedProperty prop, object value)
+	public static object SetTargetObjectOfProperty(SerializedProperty prop, object value)
 	{
 		var path = prop.propertyPath.Replace(".Array.data[", "[");
 		object obj = prop.serializedObject.targetObject;
@@ -66,7 +66,7 @@ public static class EditorUtils
 			}
 		}
 
-		if (ReferenceEquals(obj, null)) return;
+		if (ReferenceEquals(obj, null)) return null;
 
 		try
 		{
@@ -89,10 +89,12 @@ public static class EditorUtils
 					field.SetValue(obj, value);
 			}
 
+
+			return obj;
 		}
 		catch
 		{
-			return;
+			return null;
 		}
 	}
 

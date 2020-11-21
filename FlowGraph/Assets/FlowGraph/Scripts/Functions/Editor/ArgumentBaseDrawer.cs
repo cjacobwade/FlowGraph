@@ -13,6 +13,9 @@ public class ArgumentBaseDrawer : PropertyDrawer
 
 		EditorGUI.BeginChangeCheck();
 
+		if (property.serializedObject.FindProperty(property.propertyPath) == null)
+			return;
+
 		var argProp = property.FindPropertyRelative("value");
 		if (argProp != null)
 		{

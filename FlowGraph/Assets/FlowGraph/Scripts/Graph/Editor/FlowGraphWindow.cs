@@ -24,6 +24,9 @@ public class FlowGraphWindow : EditorWindow
 
 	private StyleSheet selectedStyle = null;
 
+	// example of width resizing based on mouse capture
+	// https://github.com/Unity-Technologies/UIElementsExamples/blob/master/Assets/QuickIntro/Editor/FloatingDemoWindow.cs
+
 	public static FlowGraphWindow OpenWindow(FlowGraph flowGraph)
 	{
 		FlowGraphWindow flowGraphWindow = GetWindow<FlowGraphWindow>();
@@ -89,9 +92,46 @@ public class FlowGraphWindow : EditorWindow
 		propertyField = new PropertyField();
 		propertyField.StretchToParentSize();
 		propertyField.Bind(serializedObject);
+
+		RegisterAnyChangeEvent(propertyField);
+
 		inspector.Add(propertyField);
 
 		FlowEffectElement.CancelMove();
+	}
+
+	private void ChangeCallback<T>(T changeEvent)
+	{
+		Debug.Log(typeof(T));
+	}
+
+	private void RegisterEvent<T>(VisualElement field)
+	{
+		field.UnregisterCallback<ChangeEvent<T>>(ChangeCallback);
+		field.RegisterCallback<ChangeEvent<T>>(ChangeCallback);
+	}
+
+	public void RegisterAnyChangeEvent(VisualElement field)
+	{
+		RegisterEvent<UnityEngine.Object>(field);
+		RegisterEvent<float>(field);
+		RegisterEvent<int>(field);
+		RegisterEvent<bool>(field);
+		RegisterEvent<string>(field);
+		RegisterEvent<Vector2>(field);
+		RegisterEvent<Vector3>(field);
+		RegisterEvent<Vector4>(field);
+		RegisterEvent<Color>(field);
+		RegisterEvent<Enum>(field);
+		RegisterEvent<Rect>(field);
+		RegisterEvent<AnimationCurve>(field);
+		RegisterEvent<Bounds>(field);
+		RegisterEvent<Gradient>(field);
+		RegisterEvent<Quaternion>(field);
+		RegisterEvent<Vector2Int>(field);
+		RegisterEvent<Vector3Int>(field);
+		RegisterEvent<RectInt>(field);
+		RegisterEvent<BoundsInt>(field);
 	}
 
 	private void Undo_OnUndoRedo()
@@ -123,6 +163,8 @@ public class FlowGraphWindow : EditorWindow
 					iter.isExpanded = true;
 
 				propertyField.BindProperty(effectProp);
+				RegisterAnyChangeEvent(propertyField);
+
 
 				var effect = selectedEffectElement.effect;
 				string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
