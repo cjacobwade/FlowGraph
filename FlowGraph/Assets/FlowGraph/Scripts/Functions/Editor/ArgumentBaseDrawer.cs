@@ -3,50 +3,53 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Reflection;
+using UnityEngine.Profiling;
 
 [CustomPropertyDrawer(typeof(ArgumentBase), true)]
 public class ArgumentBaseDrawer : PropertyDrawer
 {
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
-		property.serializedObject.Update();
+		Profiler.BeginSample("Argument Base Drawer");
 
-		EditorGUI.BeginChangeCheck();
-
-		if (property.serializedObject.FindProperty(property.propertyPath) == null)
-			return;
-
-		var argProp = property.FindPropertyRelative("value");
-		if (argProp != null)
+		using (var check = new EditorGUI.ChangeCheckScope())
 		{
-			var typeProp = property.FindPropertyRelative("type");
 
-			string displayName = typeProp.stringValue;
-
-			Type type = Type.GetType(typeProp.stringValue);
-			if (type != null)
-				displayName = type.Name;
-
-			var guiContent = new GUIContent(string.Format("{0} ({1})", label.text, displayName));
-
-			if (type != null && (type == typeof(UnityEngine.Object) || type.IsSubclassOf(typeof(UnityEngine.Object))))
+			var argProp = property.FindPropertyRelative("value");
+			if (argProp != null)
 			{
-				EditorGUI.ObjectField(position, argProp, type, guiContent);
+				var typeProp = property.FindPropertyRelative("type");
+
+				string displayName = typeProp.stringValue;
+
+				Type type = Type.GetType(typeProp.stringValue);
+				if (type != null)
+					displayName = type.Name;
+
+				var guiContent = new GUIContent(string.Format("{0} ({1})", label.text, displayName));
+
+				if (type != null && (type == typeof(UnityEngine.Object) || type.IsSubclassOf(typeof(UnityEngine.Object))))
+				{
+					EditorGUI.ObjectField(position, argProp, type, guiContent);
+				}
+				else
+				{
+					EditorGUI.PropertyField(position, argProp, guiContent, true);
+				}
 			}
 			else
 			{
-				EditorGUI.PropertyField(position, argProp, guiContent, true);
+
+			}
+
+			if (GUI.changed)
+			{
+				property.serializedObject.ApplyModifiedProperties();
 			}
 		}
-		else
-		{
-			
-		}
 
-		if (EditorGUI.EndChangeCheck())
-		{
-			property.serializedObject.ApplyModifiedProperties();
-		}
+		Profiler.EndSample(); // Argument Base Drawer
 	}
 
 	public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

@@ -35,8 +35,6 @@ public class FlowEffectElement : VisualElement
 	private FloatField timeField = null;
 	private Button button = null;
 
-	private BindableElement moduleFunctionField = null;
-
 	public FlowEffectElement(FlowNodeElement nodeElement, FlowEffect effect)
 	{
 		this.nodeElement = nodeElement;
@@ -64,14 +62,10 @@ public class FlowEffectElement : VisualElement
 		timeField.name = "flow-node-effect-time";
 		timeParent.Add(timeField);
 
-		string module = effect.function.module.Replace("FlowModule_", "");
-		string function = effect.function.function;
-
 		button = rowRoot.Query<Button>(className: "flow-node-row-effect-button");
 		button.clicked += EffectButton_OnClicked;
-		button.text = string.Format("{0}.{1}", module, function);
 
-		moduleFunctionField = new TextField() as BindableElement;
+		RenameButton();
 
 		outPort = FlowPort.Create(Orientation.Horizontal, Direction.Output, Port.Capacity.Single, typeof(FlowNode), nodeElement.graphView);
 		outPort.portName = string.Empty;
@@ -84,9 +78,12 @@ public class FlowEffectElement : VisualElement
 		Rebind();
 	}
 
-	private void OnModuleFunctionChanged(ChangeEvent<string> evt)
+	public void RenameButton()
 	{
-		Debug.Log("Changed Function");
+		string module = effect.function.module.Replace("FlowModule_", "");
+		string function = effect.function.function;
+
+		button.text = string.Format("{0}.{1}", module, function);
 	}
 
 	public void Rebind()
@@ -94,17 +91,11 @@ public class FlowEffectElement : VisualElement
 		enumField.Unbind();
 		timeField.Unbind();
 
-		moduleFunctionField.Unbind();
-		//moduleFunctionField.UnregisterCallback(OnModuleFunctionChanged);
-
 		var effectProperty = FindEffectProperty();
 		if (effectProperty != null)
 		{
 			enumField.BindProperty(effectProperty.FindPropertyRelative("sequenceMode"));
 			timeField.BindProperty(effectProperty.FindPropertyRelative("wait"));
-
-// 			moduleFunctionField.BindProperty(effectProperty.FindPropertyRelative("function").FindPropertyRelative("function"));
-// 			moduleFunctionField.RegisterCallback((ChangeEvent<string> e) => Debug.Log("FUNC"));
 		}
 	}
 
@@ -147,7 +138,7 @@ public class FlowEffectElement : VisualElement
 			graphView.Query<FlowNodeElement>().ForEach(n =>
 			{
 				Vector2 localPoint = VisualElementExtensions.WorldToLocal(n, evt.mousePosition);
-				if (n.ContainsPoint(localPoint) && (newParentNode == null || n.layer < newParentNode.layer))
+				if (n.ContainsPoint(localPoint) && (newParentNode == null || n.layer > newParentNode.layer))
 					newParentNode = n;
 			});
 
@@ -181,9 +172,7 @@ public class FlowEffectElement : VisualElement
 						siblingIndex++;
 				}
 
-				Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Effect Moved");
-
-				
+				Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Effect Moved");	
 
 				bool changingHierachy = prevParentNode != newParentNode || prevSiblingIndex != siblingIndex;
 
@@ -192,8 +181,7 @@ public class FlowEffectElement : VisualElement
 					if (prevParentNode != null)
 					{
 						prevParentNode.node.effects.Remove(effect);
-						prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
-						prevParentNode.MarkDirtyRepaint();
+						//prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
 					}
 
 					nodeElement = newParentNode;
@@ -208,11 +196,9 @@ public class FlowEffectElement : VisualElement
 				{
 					newParentNode.Contents.Insert(siblingIndex, this);
 					newParentNode.node.effects.Insert(siblingIndex, effect);
-					newParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind()); // need to rebind because effect array prop order is changed
+					//newParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind()); // need to rebind because effect array prop order is changed
 
 					OnEffectSelected(this);
-
-					graphView.MarkDirtyRepaint();
 				}
 			}
 			else
@@ -232,11 +218,9 @@ public class FlowEffectElement : VisualElement
 					nodeElement = null;
 
 					prevParentNode.node.effects.Remove(effect);
-					prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
+					//prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
 
 					OnEffectSelected(this);
-
-					prevParentNode.MarkDirtyRepaint();
 				}
 
 				movingElement.transform.position = evt.mousePosition - Vector2.up * layout.height - moveOffset;
@@ -314,6 +298,7 @@ public class FlowEffectElement : VisualElement
 
 	private void EffectButton_OnClicked()
 	{
+		Rebind();
 		OnEffectSelected(this);
 	}
 }

@@ -82,7 +82,9 @@ public class FlowGraphView : GraphView
 
 	private FlowNode AddNode(Vector2 mousePosition, string name = null)
 	{
-		FlowNode node = new FlowNode(mousePosition);
+		Vector2 worldPos = viewTransform.matrix.inverse.MultiplyPoint(mousePosition);
+
+		FlowNode node = new FlowNode(worldPos);
 		node.name = string.IsNullOrEmpty(name) ? GetUnusedDefaultNodeName() : name;
 		node.id = GetUnusedNodeID();
 

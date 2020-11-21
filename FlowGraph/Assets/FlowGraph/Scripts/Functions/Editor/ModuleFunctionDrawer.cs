@@ -3,127 +3,157 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.Reflection;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.Experimental.GraphView;
-using System;
 using System.Linq;
+using UnityEngine.Profiling;
 
 [CustomPropertyDrawer(typeof(ModuleFunction))]
 public class ModuleFunctionDrawer : PropertyDrawer
 {
-	private SerializedProperty moduleProp = null;
-	private SerializedProperty functionProp = null;
-	private SerializedProperty argsProp = null;
-
-	private VisualElement container = null;
-	private List<FlowTypeCache.ModuleInfo> moduleInfos = new List<FlowTypeCache.ModuleInfo>();
-
-	private PopupField<string> moduleField = null;
-	private PopupField<string> functionField = null;
-
-	private PropertyField argsField = null;
-
-	public override VisualElement CreatePropertyGUI(SerializedProperty property)
+	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
-		moduleProp = property.FindPropertyRelative("module");
-		functionProp = property.FindPropertyRelative("function");
-		argsProp = property.FindPropertyRelative("arguments");
+		Profiler.BeginSample("Module Function Drawer");
 
-		container = new VisualElement();
+		EditorGUI.BeginProperty(position, label, property);
 
-		ObjectField contextField = new ObjectField("Context");
-		contextField.objectType = typeof(UniqueObjectData);
-		container.Add(contextField);
+		position.height = EditorGUIUtility.singleLineHeight;
 
-		moduleInfos = FlowTypeCache.GetModuleInfos();
-
-		RebuildModuleFunction();
-
-		return container;
-	}
-
-	private void OnModuleNameChanged(ChangeEvent<string> change)
-	{
-		moduleProp.stringValue = change.newValue;
-		RebuildModuleFunction();
-	}
-
-	private void OnFunctionNameChanged(ChangeEvent<string> change)
-	{
-		functionProp.stringValue = change.newValue;
-		RebuildModuleFunction();
-	}
-
-	private void RebuildModuleFunction()
-	{
-		if (moduleField != null)
-			moduleField.RemoveFromHierarchy();
-
-		if (functionField != null)
-			functionField.RemoveFromHierarchy();
-
-		List<string> modules = moduleInfos.Select(m => m.typeInfo.Name).ToList();
-		int moduleIndex = modules.IndexOf(moduleProp.stringValue);
-
-		moduleField = new PopupField<string>(
-			moduleProp.displayName, modules, moduleIndex,
-			(s) => s.Replace("FlowModule_", ""),
-			(s) => s.Replace("FlowModule_", ""));
-
-		moduleField.Bind(moduleProp.serializedObject);
-		moduleField.RegisterCallback<ChangeEvent<string>>(OnModuleNameChanged);
-		container.Add(moduleField);
-
-		List<string> functions = new List<string>();
-
-		int functionIndex = -1;
-		if (moduleIndex >= 0)
+		using (var check = new EditorGUI.ChangeCheckScope())
 		{
-			functions = moduleInfos[moduleIndex].methodInfos.Select(m => m.Name).ToList();
-			functionIndex = Mathf.Max(0, functions.IndexOf(functionProp.stringValue));
+			EditorGUI.PropertyField(position, property, label, false);
+
+			if (GUI.changed)
+			{
+				property.serializedObject.ApplyModifiedProperties();
+				EditorGUI.EndProperty();
+
+				Profiler.EndSample(); // Module Function Drawer
+				return;
+			}
 		}
 
-		functionField = new PopupField<string>(functionProp.displayName, functions, functionIndex);
-		functionField.Bind(functionProp.serializedObject);
-		functionField.RegisterCallback<ChangeEvent<string>>(OnFunctionNameChanged);
-		container.Add(functionField);
-
-		RebuildArguments();
-	}
-
-	private void RebuildArguments()
-	{
-		MethodInfo methodInfo = FlowTypeCache.GetModuleFunction(
-			moduleProp.stringValue, functionProp.stringValue);
-
-		if (methodInfo != null)
+		if (property.isExpanded)
 		{
-			List<ArgumentBase> arguments = new List<ArgumentBase>();
+			EditorGUI.indentLevel++;
 
-			var parameters = methodInfo.GetParameters();
-			for (int i = 1; i < parameters.Length; i++) // skip first param because we know this will be effectinstance
+			position.y += EditorGUIUtility.singleLineHeight;
+
+			using (var check = new EditorGUI.ChangeCheckScope())
 			{
-				var argument = ArgumentHelper.GetArgumentOfType(parameters[i].ParameterType);
-				argument.name = parameters[i].Name;
-				arguments.Add(argument);
+				var contextProp = property.FindPropertyRelative("context");
+				EditorGUI.ObjectField(position, contextProp, typeof(UniqueObjectData));
+
+				if (GUI.changed)
+					property.serializedObject.ApplyModifiedProperties();
 			}
 
-			argsProp.arraySize = parameters.Length - 1;
-			var obj = EditorUtils.SetTargetObjectOfProperty(argsProp, arguments);
-			argsProp.serializedObject.Update();	
+			var moduleInfos = FlowTypeCache.GetModuleInfos();
+
+			List<string> modules = moduleInfos.Select(m => m.typeInfo.Name).ToList();
+			List<string> moduleDisplayNames = moduleInfos.Select(m => m.typeInfo.Name.Replace("FlowModule_", "")).ToList();
+
+			var moduleProp = property.FindPropertyRelative("module");
+			int moduleIndex = Mathf.Max(0, modules.IndexOf(moduleProp.stringValue));
+
+			position.y += EditorGUIUtility.singleLineHeight;
+
+			var argsProp = property.FindPropertyRelative("arguments"); ;
+
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				moduleIndex = EditorGUI.Popup(position, moduleProp.displayName, moduleIndex, moduleDisplayNames.ToArray());
+				moduleProp.stringValue = modules[moduleIndex];
+
+				var functionProp = property.FindPropertyRelative("function");
+
+				List<string> functions = moduleInfos[moduleIndex].methodInfos.Select(m => m.Name).ToList();
+				int functionIndex = Mathf.Max(0, functions.IndexOf(functionProp.stringValue));
+
+				position.y += EditorGUIUtility.singleLineHeight;
+
+				functionIndex = EditorGUI.Popup(position, functionProp.displayName, functionIndex, functions.ToArray());
+				functionProp.stringValue = functions[functionIndex];
+				
+				if (GUI.changed)
+				{
+					property.serializedObject.ApplyModifiedProperties();
+
+					// Changed module or function so lets refresh arguments
+
+					MethodInfo methodInfo = moduleInfos[moduleIndex].methodInfos[functionIndex];
+					if (methodInfo != null)
+					{
+						List<ArgumentBase> arguments = new List<ArgumentBase>();
+
+						var parameters = methodInfo.GetParameters();
+						for (int i = 1; i < parameters.Length; i++) // skip first param because we know this will be effectinstance
+						{
+							var argument = ArgumentHelper.GetArgumentOfType(parameters[i].ParameterType);
+							argument.name = parameters[i].Name;
+							arguments.Add(argument);
+						}
+
+						EditorUtils.SetTargetObjectOfProperty(argsProp, arguments);
+					}
+				}
+			}
+
+			argsProp = property.FindPropertyRelative("arguments");
+			if (argsProp.arraySize > 0)
+			{
+				position.y += EditorGUIUtility.singleLineHeight;
+
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					EditorGUI.PropertyField(position, argsProp, false);
+
+					if (argsProp.isExpanded)
+					{
+						position.y += EditorGUIUtility.singleLineHeight;
+						EditorGUI.indentLevel++;
+
+						for (int i = 0; i < argsProp.arraySize; i++)
+						{
+							var elementProp = argsProp.GetArrayElementAtIndex(i);
+
+							EditorGUI.PropertyField(position, elementProp, true);
+
+							position.y += EditorGUI.GetPropertyHeight(elementProp, true);
+						}
+
+						EditorGUI.indentLevel--;
+					}
+
+					if(GUI.changed)
+						property.serializedObject.ApplyModifiedProperties();
+				}
+			}
+
+			EditorGUI.indentLevel--;
+
+			EditorGUI.EndProperty();
+
+			Profiler.EndSample(); // Module Function Drawer
 		}
+	}
 
-		if (argsField != null)
-			argsField.RemoveFromHierarchy();
-
-		if (argsProp.arraySize > 0)
+	public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+	{
+		if (property.isExpanded)
 		{
-			argsField = new PropertyField(argsProp);
-			argsField.Bind(argsProp.serializedObject);
-			container.Add(argsField);
-		}
+			float height = EditorGUIUtility.singleLineHeight * 4f;
 
-		container.MarkDirtyRepaint();
+			var argsProp = property.FindPropertyRelative("arguments");
+			if (argsProp.arraySize > 0f)
+			{
+				height += EditorGUI.GetPropertyHeight(argsProp, argsProp.isExpanded);
+
+				if (argsProp.isExpanded)
+					height -= EditorGUIUtility.singleLineHeight; // cancel array size line since we're skipping that
+			}
+
+			return height;
+		}
+		else
+			return EditorGUIUtility.singleLineHeight;
 	}
 }

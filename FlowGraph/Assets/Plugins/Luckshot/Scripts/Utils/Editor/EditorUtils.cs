@@ -89,7 +89,7 @@ public static class EditorUtils
 					field.SetValue(obj, value);
 			}
 
-
+			prop.serializedObject.Update(); // this way of setting the value means we definitely want this
 			return obj;
 		}
 		catch

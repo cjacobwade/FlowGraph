@@ -89,49 +89,20 @@ public class FlowGraphWindow : EditorWindow
 		button.clicked += EffectButton_OnClicked;
 
 		VisualElement inspector = inspectorRoot.Query<VisualElement>(className:"flow-inspector-content");
+
 		propertyField = new PropertyField();
 		propertyField.StretchToParentSize();
 		propertyField.Bind(serializedObject);
 
-		RegisterAnyChangeEvent(propertyField);
+		inspector.RegisterCallback<MouseMoveEvent>((e) =>
+		{
+			if (selectedEffectElement != null)
+				selectedEffectElement.RenameButton();
+		});
 
 		inspector.Add(propertyField);
 
 		FlowEffectElement.CancelMove();
-	}
-
-	private void ChangeCallback<T>(T changeEvent)
-	{
-		Debug.Log(typeof(T));
-	}
-
-	private void RegisterEvent<T>(VisualElement field)
-	{
-		field.UnregisterCallback<ChangeEvent<T>>(ChangeCallback);
-		field.RegisterCallback<ChangeEvent<T>>(ChangeCallback);
-	}
-
-	public void RegisterAnyChangeEvent(VisualElement field)
-	{
-		RegisterEvent<UnityEngine.Object>(field);
-		RegisterEvent<float>(field);
-		RegisterEvent<int>(field);
-		RegisterEvent<bool>(field);
-		RegisterEvent<string>(field);
-		RegisterEvent<Vector2>(field);
-		RegisterEvent<Vector3>(field);
-		RegisterEvent<Vector4>(field);
-		RegisterEvent<Color>(field);
-		RegisterEvent<Enum>(field);
-		RegisterEvent<Rect>(field);
-		RegisterEvent<AnimationCurve>(field);
-		RegisterEvent<Bounds>(field);
-		RegisterEvent<Gradient>(field);
-		RegisterEvent<Quaternion>(field);
-		RegisterEvent<Vector2Int>(field);
-		RegisterEvent<Vector3Int>(field);
-		RegisterEvent<RectInt>(field);
-		RegisterEvent<BoundsInt>(field);
 	}
 
 	private void Undo_OnUndoRedo()
@@ -155,16 +126,9 @@ public class FlowGraphWindow : EditorWindow
 		{
 			var effectProp = selectedEffectElement.FindEffectProperty();
 			if (effectProp != null)
-			{
-				effectProp.isExpanded = true;
-
-				var iter = effectProp.Copy();
-				while (iter.Next(true))
-					iter.isExpanded = true;
-
+			{ 
+				propertyField.Unbind();
 				propertyField.BindProperty(effectProp);
-				RegisterAnyChangeEvent(propertyField);
-
 
 				var effect = selectedEffectElement.effect;
 				string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
@@ -173,7 +137,6 @@ public class FlowGraphWindow : EditorWindow
 			else
 			{
 				propertyField.Unbind();
-				propertyField.bindingPath = string.Empty;
 			}
 
 			selectedEffectElement.styleSheets.Add(selectedStyle);
