@@ -17,9 +17,6 @@ public class FlowNodeElement : Node
 	private VisualElement contents = null;
 	public VisualElement Contents => contents;
 
-	private bool hasMouse = false;
-	public bool HasMouse => hasMouse;
-
 	public SerializedObject SerializedObject => graphView.window.SerializedObject;
 
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
@@ -39,9 +36,6 @@ public class FlowNodeElement : Node
 		UseDefaultStyling();
 
 		SetPosition(new Rect(node.position.x, node.position.y, 0, 0));
-
-		RegisterCallback<MouseEnterEvent>((evt) => hasMouse = true);
-		RegisterCallback<MouseLeaveEvent>((evt) => hasMouse = false);
 
 		inputPort = FlowPort.Create(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(FlowNode), graphView);
 		inputPort.portName = string.Empty;

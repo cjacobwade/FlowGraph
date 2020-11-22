@@ -8,7 +8,7 @@ public class FlowModule_Core : FlowModule
 	{
 		if (time <= 0f)
 		{
-			Complete(effect);
+			TimeManager.Invoke(Complete, effect, 0);
 		}
 		else
 		{

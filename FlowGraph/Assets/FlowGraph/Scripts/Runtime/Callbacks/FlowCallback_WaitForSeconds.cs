@@ -11,7 +11,7 @@ public class FlowCallback_WaitForSeconds : FlowCallback
 
 	public override void Cancel()
 	{
-		base.Cancel();
 		TimeManager.CancelInvoke(Complete);
+		base.Cancel();
 	}
 }
