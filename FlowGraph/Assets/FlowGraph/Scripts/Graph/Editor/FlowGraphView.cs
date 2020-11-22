@@ -34,29 +34,7 @@ public class FlowGraphView : GraphView
 			AddNodeElement(node);
 
 		// Wire up connections
-		this.Query<FlowNodeElement>().ForEach((n) =>
-		{
-			n.Query<FlowEffectElement>().ForEach((e) =>
-			{
-				int nextNodeId = e.effect.nextNodeID;
-				if(nextNodeId != -1)
-				{
-					FlowPort effectPort = e.Query<FlowPort>();
-					FlowPort nextNodePort = null;
-
-					this.Query<FlowNodeElement>().ForEach((n2) =>
-					{
-						if (nextNodeId == n2.node.id)
-							nextNodePort = n2.Query<FlowPort>();
-					});
-
-					if (nextNodePort != null)
-						Add(effectPort.ConnectTo(nextNodePort));
-					else
-						e.effect.nextNodeID = -1;
-				}
-			});
-		});
+		this.Query<FlowNodeElement>().ForEach((n) => n.ConnectEffects());
 
 		deleteSelection = OnDeletedSelection;
 		graphViewChanged = OnGraphViewChanged;

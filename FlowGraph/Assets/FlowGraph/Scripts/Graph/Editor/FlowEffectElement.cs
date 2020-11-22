@@ -6,6 +6,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Reflection;
+using UnityEngine.Profiling;
 
 public class FlowEffectElement : VisualElement
 {
@@ -76,8 +77,6 @@ public class FlowEffectElement : VisualElement
 
 		VisualElement portContainer = rowRoot.Query<VisualElement>(className:"flow-node-row-effect-port-container");
 		portContainer.Add(outPort);
-
-		Rebind();
 	}
 
 	public void RenameButton()
@@ -86,6 +85,27 @@ public class FlowEffectElement : VisualElement
 		string function = effect.function.function;
 
 		button.text = string.Format("{0}.{1}", module, function);
+	}
+
+	public void ConnectToNext()
+	{
+		int nextNodeId = effect.nextNodeID;
+		if (nextNodeId != -1)
+		{
+			FlowPort effectPort = this.Query<FlowPort>();
+			FlowPort nextNodePort = null;
+
+			graphView.Query<FlowNodeElement>().ForEach((n2) =>
+			{
+				if (nextNodeId == n2.node.id)
+					nextNodePort = n2.Query<FlowPort>();
+			});
+
+			if (nextNodePort != null)
+				Add(effectPort.ConnectTo(nextNodePort));
+			else
+				effect.nextNodeID = -1;
+		}
 	}
 
 	public void Rebind()
@@ -236,7 +256,8 @@ public class FlowEffectElement : VisualElement
 			}
 			else
 			{
-				Destroy();
+				ClearConnections();
+				parent.Remove(this);
 			}
 
 			movingElement.parent.Remove(movingElement);
@@ -246,10 +267,8 @@ public class FlowEffectElement : VisualElement
 		}
 	}
 
-	public void Destroy()
+	public void ClearConnections()
 	{
-		Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Remove Effect");
-
 		List<Edge> connectionsToRemove = new List<Edge>();
 		connectionsToRemove.AddRange(outPort.connections);
 
@@ -259,8 +278,6 @@ public class FlowEffectElement : VisualElement
 			connection.output.Disconnect(connection);
 			graphView.RemoveElement(connection);
 		}
-
-		parent.Remove(this);
 	}
 
 	private void Port_OnPortConnected(FlowPort port, Edge edge)
@@ -281,17 +298,18 @@ public class FlowEffectElement : VisualElement
 	{
 		graphView.SerializedObject.Update();
 
-		var sp = graphView.SerializedObject.GetIterator();
-		while (sp.Next(true))
+		int nodeIndex = graphView.flowGraph.nodes.IndexOf(this.nodeElement?.node);
+		int effectIndex = this.nodeElement.node.effects.IndexOf(this.effect);
+
+		if (nodeIndex >= 0 && effectIndex >= 0)
 		{
-			if (sp.type == "FlowEffect")
-			{
-				FlowEffect effect = EditorUtils.GetTargetObjectOfProperty(sp) as FlowEffect;
-				if (effect != null && effect == this.effect)
-				{
-					return sp;
-				}
-			}
+			var nodesProp = SerializedObject.FindProperty("nodes");
+			var nodeProp = nodesProp.GetArrayElementAtIndex(nodeIndex);
+
+			var effectsProp = nodeProp.FindPropertyRelative("effects");
+			var effectProp = effectsProp.GetArrayElementAtIndex(effectIndex);
+
+			return effectProp;
 		}
 
 		return null;

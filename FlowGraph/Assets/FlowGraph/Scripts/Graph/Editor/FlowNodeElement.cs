@@ -30,7 +30,7 @@ public class FlowNodeElement : Node
 		this.node = node;
 
 		title = node.name;
-
+		
 		style.borderBottomLeftRadius = 8;
 		style.borderBottomRightRadius = 8;
 		style.borderTopRightRadius = 8;
@@ -72,6 +72,7 @@ public class FlowNodeElement : Node
 
 	public void BuildEffects()
 	{
+		this.Query<FlowEffectElement>().ForEach(e => e.ClearConnections());
 		contents.Clear();
 
 		foreach (var effect in node.effects)
@@ -87,6 +88,11 @@ public class FlowNodeElement : Node
 		Button addEffectButton = addEffectRow.Query<Button>();
 		addEffectButton.clicked += AddEffectButton_Clicked;
 		addEffectButton.text = "Add Effect";
+	}
+
+	public void ConnectEffects()
+	{
+		this.Query<FlowEffectElement>().ForEach((e) => e.ConnectToNext());
 	}
 
 	public void BindEffects()
@@ -119,5 +125,6 @@ public class FlowNodeElement : Node
 		node.effects.Add(effect);
 
 		BuildEffects();
+		BindEffects();
 	}
 }
