@@ -12,6 +12,6 @@ public class FlowModule : MonoBehaviour
 
 	public void RegisterCallback(FlowCallback callback)
 	{
-		callback.OnComplete += () => Complete(callback.EffectInstance);
+		callback.OnComplete += Complete;
 	}
 }

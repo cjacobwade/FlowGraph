@@ -12,27 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9008390113e071f4f9a034c20a60dbc8, type: 3}
   m_Name: FlowGraph_Baba
   m_EditorClassIdentifier: 
-  startNodeID: 0
+  startNodeID: 26
   nodes:
-  - id: 4
-    name: Node4
-    position: {x: 819, y: -414.65598}
+  - id: 26
+    name: Node26
+    position: {x: -135.59998, y: 314.40002}
     effects:
     - nextNodeID: -1
-      sequenceMode: 1
+      sequenceMode: 2
       wait: 0
       function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
+        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
+        module: FlowModule_Core
+        function: WaitForSeconds
         arguments:
         - id: 0
         outcomes: []
     - nextNodeID: -1
-      sequenceMode: 1
+      sequenceMode: 0
       wait: 0
       function:
-        context: {fileID: 0}
+        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
         function: PlayAnimation
         arguments:
@@ -42,523 +42,84 @@ MonoBehaviour:
       sequenceMode: 0
       wait: 0
       function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
+        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
+        module: FlowModule_Core
+        function: WaitForSeconds
         arguments:
         - id: 2
         outcomes: []
+  - id: 0
+    name: Node
+    position: {x: 283.53397, y: 445.0926}
+    effects:
     - nextNodeID: -1
-      sequenceMode: 1
+      sequenceMode: 2
       wait: 0
       function:
-        context: {fileID: 0}
+        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
         function: PlayAnimation
         arguments:
         - id: 3
         outcomes: []
     - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 4
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 1
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 5
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 1
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 6
-        outcomes: []
-  - id: 7
-    name: Node7
-    position: {x: 457.19965, y: 1367.6241}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 16
-    name: Node16
-    position: {x: -156.12286, y: 119.74512}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 18
-    name: Node18
-    position: {x: 1003.19995, y: -142.4}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 1
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 7
-        outcomes: []
-    - nextNodeID: -1
       sequenceMode: 0
       wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 8
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 1
-      wait: 5.41
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: StopAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 5
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 9
-        outcomes: []
-    - nextNodeID: 4
-      sequenceMode: 2
-      wait: 0.21
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Core
-        function: WaitForSeconds
-        arguments:
-        - id: 10
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 11
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 12
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 13
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 1
-      wait: 5
       function:
         context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
         module: FlowModule_Core
         function: WaitForSeconds
         arguments:
-        - id: 14
+        - id: 4
         outcomes: []
     - nextNodeID: -1
       sequenceMode: 0
       wait: 0
       function:
-        context: {fileID: 0}
+        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
         function: PlayAnimation
         arguments:
-        - id: 15
-        outcomes: []
-  - id: 19
-    name: Node19
-    position: {x: 214.17139, y: 374.88193}
-    effects:
-    - nextNodeID: 27
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 23
-    name: Node23
-    position: {x: 193.8503, y: -39.984135}
-    effects:
-    - nextNodeID: 27
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 24
-    name: Node24
-    position: {x: -334.65527, y: -17.635386}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 25
-    name: Node25
-    position: {x: 268.2503, y: -196.7841}
-    effects:
-    - nextNodeID: 4
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 26
-    name: Node26
-    position: {x: -224.80002, y: -244.82625}
-    effects:
-    - nextNodeID: 25
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 27
-    name: Node27
-    position: {x: 579.374, y: 91.09549}
-    effects:
-    - nextNodeID: 18
-      sequenceMode: 1
-      wait: 5
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Core
-        function: WaitForSeconds
-        arguments:
-        - id: 16
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 1
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 17
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 18
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 19
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments:
-        - id: 20
-        outcomes: []
-  - id: 28
-    name: Node28
-    position: {x: 206.92796, y: -418.2561}
-    effects:
-    - nextNodeID: 4
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 0
-    name: Node
-    position: {x: 75.81549, y: 226.1185}
-    effects:
-    - nextNodeID: 27
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
+        - id: 5
         outcomes: []
   references:
     version: 1
     00000000:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
       data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 3
     00000001:
       type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
       data:
         name: clip
         type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        value: {fileID: 7400000, guid: 8fcddd6628a030f419d91db617d16e7b, type: 2}
     00000002:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
       data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 5
     00000003:
       type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
       data:
         name: clip
         type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        value: {fileID: 7400000, guid: 8fcddd6628a030f419d91db617d16e7b, type: 2}
     00000004:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
       data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 0.47
     00000005:
       type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
       data:
         name: clip
         type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000006:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000007:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000008:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000009:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    0000000A:
-      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
-      data:
-        name: time
-        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-        value: 0
-    0000000B:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    0000000C:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    0000000D:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    0000000E:
-      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
-      data:
-        name: time
-        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-        value: 0
-    0000000F:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000010:
-      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
-      data:
-        name: time
-        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-        value: 0
-    00000011:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000012:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000013:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
-    00000014:
-      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
-      data:
-        name: clip
-        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-        value: {fileID: 0}
+        value: {fileID: 7400000, guid: 8fcddd6628a030f419d91db617d16e7b, type: 2}

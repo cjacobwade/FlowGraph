@@ -74,7 +74,7 @@ public class ModuleFunctionDrawer : PropertyDrawer
 				MethodInfo methodInfo = moduleInfos[moduleIndex].methodInfos[functionIndex];
 				ParameterInfo[] parameters = methodInfo.GetParameters();
 
-				if (GUI.changed || parameters.Length != argsProp.arraySize)
+				if (GUI.changed || parameters.Length != argsProp.arraySize + 1)
 				{
 					if (GUI.changed)
 					{

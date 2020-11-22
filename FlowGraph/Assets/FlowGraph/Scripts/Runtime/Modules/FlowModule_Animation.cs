@@ -12,7 +12,7 @@ public class FlowModule_Animation : FlowModule
 		animation.clip = clip;
 		animation.Play();
 
-		if (clip.length <= 0f || clip.isLooping)
+		if (clip.length <= 0f || clip.wrapMode == WrapMode.Loop)
 		{
 			Complete(effect);
 		}

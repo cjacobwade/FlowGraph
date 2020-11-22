@@ -5,23 +5,22 @@ using UnityEngine;
 public abstract class FlowCallback
 {
 	protected FlowEffectInstance effectInstance = null;
-	public FlowEffectInstance EffectInstance => effectInstance;
 
-	public System.Action OnComplete = delegate {};
-	public System.Action OnCancel = delegate {};
+	public event System.Action<FlowEffectInstance> OnComplete = delegate {};
+	public event System.Action<FlowEffectInstance> OnCancel = delegate {};
 
-	public FlowCallback(FlowEffectInstance effect)
+	public FlowCallback(FlowEffectInstance effectInstance)
 	{
-		effectInstance = effect;
+		this.effectInstance = effectInstance;
 	}
 
 	public virtual void Complete()
 	{
-		OnComplete();
+		OnComplete(effectInstance);
 	}
 
 	public virtual void Cancel()
 	{
-		OnCancel();
+		OnCancel(effectInstance);
 	}
 }

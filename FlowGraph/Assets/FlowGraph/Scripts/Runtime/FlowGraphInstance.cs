@@ -33,14 +33,15 @@ public class FlowGraphInstance
 
 		if (effectInstance.effect.nextNodeID != -1)
 		{
+			FlowNodeInstance nextNodeInstance = null;
 			foreach (var iter in nodeInstances)
 			{
 				if (iter.node.id == effectInstance.effect.nextNodeID)
-				{
-					nodeInstance.Play();
-					break;
-				}
+					nextNodeInstance = iter;
 			}
+
+			if (nextNodeInstance != null)
+				nextNodeInstance.Play();
 		}
 	}
 

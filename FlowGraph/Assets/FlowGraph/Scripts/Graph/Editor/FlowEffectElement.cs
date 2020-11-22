@@ -17,8 +17,6 @@ public class FlowEffectElement : VisualElement
 
 	private Vector2 moveOffset = Vector2.zero;
 
-	private static FlowNodeElement prevNodeElement = null;
-
 	private static VisualElement movingElement = null;
 	private static FlowEffectElement movingEffectElement = null;
 
