@@ -16,10 +16,12 @@ public class FlowEffectElement : VisualElement
 
 	private Vector2 moveOffset = Vector2.zero;
 
+	private static FlowNodeElement prevNodeElement = null;
+
 	private static VisualElement movingElement = null;
 	private static FlowEffectElement movingEffectElement = null;
 
-	public static void CancelMove()
+	public static void ResetMoveState()
 	{ 
 		movingElement = null;
 		movingEffectElement = null;
@@ -88,14 +90,11 @@ public class FlowEffectElement : VisualElement
 
 	public void Rebind()
 	{
-		enumField.Unbind();
-		timeField.Unbind();
-
 		var effectProperty = FindEffectProperty();
 		if (effectProperty != null)
 		{
-			enumField.BindProperty(effectProperty.FindPropertyRelative("sequenceMode"));
-			timeField.BindProperty(effectProperty.FindPropertyRelative("wait"));
+			enumField.bindingPath = effectProperty.FindPropertyRelative("sequenceMode").propertyPath;
+			timeField.bindingPath = effectProperty.FindPropertyRelative("wait").propertyPath;
 		}
 	}
 
@@ -181,22 +180,26 @@ public class FlowEffectElement : VisualElement
 					if (prevParentNode != null)
 					{
 						prevParentNode.node.effects.Remove(effect);
-						//prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
+						prevParentNode.Contents.Remove(this);
 					}
 
 					nodeElement = newParentNode;
 				}
-				else if(changingHierachy)
+				else 
 				{
-					newParentNode.node.effects.Remove(effect);
-					newParentNode.Contents.Remove(this);
+					if (changingHierachy)
+					{
+						newParentNode.node.effects.Remove(effect);
+						newParentNode.Contents.Remove(this);
+					}
 				}
 
 				if (changingHierachy)
 				{
 					newParentNode.Contents.Insert(siblingIndex, this);
 					newParentNode.node.effects.Insert(siblingIndex, effect);
-					//newParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind()); // need to rebind because effect array prop order is changed
+
+					SerializedObject.Update();
 
 					OnEffectSelected(this);
 				}
@@ -218,7 +221,8 @@ public class FlowEffectElement : VisualElement
 					nodeElement = null;
 
 					prevParentNode.node.effects.Remove(effect);
-					//prevParentNode.Query<FlowEffectElement>().ForEach(e => e.Rebind());
+
+					prevParentNode.RebuildEffectElements();
 
 					OnEffectSelected(this);
 				}
@@ -234,12 +238,19 @@ public class FlowEffectElement : VisualElement
 		graphView.UnregisterCallback<MouseMoveEvent>(Selector_OnMouseMove);
 		graphView.UnregisterCallback<MouseUpEvent>(Selector_OnMouseUp);
 
-		if(movingElement != null || movingEffectElement != null)
+		if(movingEffectElement != null)
 		{
-			if (nodeElement == null)
+			if (nodeElement != null)
+			{
+				nodeElement.RebuildEffectElements();
+			}
+			else
+			{
 				Destroy();
+			}
 
 			movingElement.parent.Remove(movingElement);
+
 			movingEffectElement = null;
 			movingElement = null;
 		}

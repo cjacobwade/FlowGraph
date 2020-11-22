@@ -63,8 +63,16 @@ public class FlowNodeElement : Node
 		titleButton.parent.Remove(titleButton);
 
 		contents = this.Query<VisualElement>("contents");
-		contents.Remove(contents.Query<VisualElement>("top"));
-		contents.Remove(contents.Query<VisualElement>("divider"));
+
+		RebuildEffectElements();
+
+		Add(contents);
+	}
+
+	public void RebuildEffectElements()
+	{
+		contents.Clear();
+		SerializedObject.Update();
 
 		foreach (var effect in node.effects)
 		{
@@ -80,7 +88,7 @@ public class FlowNodeElement : Node
 		addEffectButton.clicked += AddEffectButton_Clicked;
 		addEffectButton.text = "Add Effect";
 
-		Add(contents);
+		this.Bind(SerializedObject);
 	}
 
 	public override void SetPosition(Rect newPos)
@@ -104,8 +112,6 @@ public class FlowNodeElement : Node
 		effect.sequenceMode = FlowEffect.SequenceMode.AfterPrev;
 		node.effects.Add(effect);
 
-		var effectElement = new FlowEffectElement(this, effect);
-		effectElement.OnEffectSelected += (e) => OnEffectSelected(e);
-		contents.Insert(contents.childCount - 1, effectElement);
+		RebuildEffectElements();
 	}
 }

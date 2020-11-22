@@ -50,7 +50,6 @@ public class FlowGraphWindow : EditorWindow
 		this.flowGraph = flowGraph;
 
 		serializedObject = new SerializedObject(flowGraph);
-
 		rootVisualElement.AddStyleSheet("FlowGraph");
 
 		selectedStyle = UIElementUtils.GetStyleSheet("FlowGraph_Selected");
@@ -92,7 +91,6 @@ public class FlowGraphWindow : EditorWindow
 
 		propertyField = new PropertyField();
 		propertyField.StretchToParentSize();
-		propertyField.Bind(serializedObject);
 
 		inspector.RegisterCallback<MouseMoveEvent>((e) =>
 		{
@@ -102,7 +100,7 @@ public class FlowGraphWindow : EditorWindow
 
 		inspector.Add(propertyField);
 
-		FlowEffectElement.CancelMove();
+		FlowEffectElement.ResetMoveState();
 	}
 
 	private void Undo_OnUndoRedo()
@@ -117,8 +115,11 @@ public class FlowGraphWindow : EditorWindow
 
 	private void GraphView_OnEffectSelected(FlowEffectElement effectRot)
 	{
-		if(selectedEffectElement != null)
+		if (selectedEffectElement != null)
+		{
+			selectedEffectElement.Unbind();
 			selectedEffectElement.styleSheets.Remove(selectedStyle);
+		}
 
 		selectedEffectElement = effectRot;
 
@@ -127,23 +128,14 @@ public class FlowGraphWindow : EditorWindow
 			var effectProp = selectedEffectElement.FindEffectProperty();
 			if (effectProp != null)
 			{ 
-				propertyField.Unbind();
 				propertyField.BindProperty(effectProp);
 
 				var effect = selectedEffectElement.effect;
 				string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
 				propertyField.label = label;
 			}
-			else
-			{
-				propertyField.Unbind();
-			}
 
 			selectedEffectElement.styleSheets.Add(selectedStyle);
-		}
-		else
-		{
-			propertyField.Unbind();
 		}
 	}
 
