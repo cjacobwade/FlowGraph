@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 using System.Reflection;
 
 [System.Serializable]
@@ -26,7 +25,7 @@ public class ModuleFunction
 
 	public void Invoke(FlowEffectInstance effect = null)
 	{
-		Type moduleType = FlowTypeCache.GetModuleType(module);
+		System.Type moduleType = FlowTypeCache.GetModuleType(module);
 		if (moduleType != null)
 		{
 			UniqueObject uniqueObject = UniqueObjectManager.Instance.LookupUniqueObject(context);
@@ -36,12 +35,26 @@ public class ModuleFunction
 				if(moduleComponent != null)
 				{
 					MethodInfo methodInfo = FlowTypeCache.GetModuleFunction(module, function);
+					ParameterInfo[] paramsInfo = methodInfo.GetParameters();
 
 					object[] argumentArr = new object[arguments.Count + 1];
 					argumentArr[0] = effect;
 
-					for(int i = 1; i < argumentArr.Length; i++)
-						argumentArr[i] = arguments[i - 1].Value;
+					for (int i = 1; i < argumentArr.Length; i++)
+					{
+						object value = arguments[i - 1].Value;
+
+						System.Type paramType = paramsInfo[i].ParameterType;
+						if (paramType.IsSubclassOf(typeof(Object)))
+						{
+							if(((Object)value) != null)
+								argumentArr[i] = value;
+						}
+						else
+						{
+							argumentArr[i] = value;
+						}
+					}
 
 					methodInfo.Invoke(moduleComponent, argumentArr);
 				}
