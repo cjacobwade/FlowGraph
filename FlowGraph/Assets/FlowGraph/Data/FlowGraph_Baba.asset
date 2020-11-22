@@ -14,77 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startNodeID: 0
   nodes:
-  - id: 0
-    name: Node
-    position: {x: 457, y: 149}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 1
-    name: Node1
-    position: {x: 867.3582, y: 23.314508}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 2
-    name: Node2
-    position: {x: 322, y: 62.000004}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 3
-    name: Node3
-    position: {x: 209, y: 50.000004}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
   - id: 4
     name: Node4
-    position: {x: 41.255352, y: 247.4498}
+    position: {x: 566.4478, y: -128.1168}
     effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
+    - nextNodeID: 18
+      sequenceMode: 1
+      wait: 5
       function:
         context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
+        module: FlowModule_Core
+        function: WaitForSeconds
+        arguments:
+        - id: 0
         outcomes: []
-  - id: 5
-    name: Node5
-    position: {x: 731, y: 173.2}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
+    - nextNodeID: 18
+      sequenceMode: 0
       wait: 0
       function:
         context: {fileID: 0}
@@ -92,135 +37,18 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-  - id: 6
-    name: Node6
-    position: {x: 786, y: 209.2}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
+    - nextNodeID: 18
+      sequenceMode: 0
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 7
     name: Node7
     position: {x: 457.19965, y: 1367.6241}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 8
-    name: Node8
-    position: {x: 683, y: 270.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 9
-    name: Node9
-    position: {x: 685, y: 262.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 10
-    name: Node10
-    position: {x: 606, y: 115.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 11
-    name: Node11
-    position: {x: 459, y: 200.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 12
-    name: Node12
-    position: {x: 442, y: 41.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 13
-    name: Node13
-    position: {x: 304, y: 342.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: FlowModule_Animation
-        function: PlayAnimation
-        arguments: []
-        outcomes: []
-  - id: 14
-    name: Node14
-    position: {x: 317, y: 52.8}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 15
-    name: Node15
-    position: {x: 579, y: 191.8}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
@@ -240,8 +68,8 @@ MonoBehaviour:
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
     - nextNodeID: -1
@@ -253,194 +81,266 @@ MonoBehaviour:
         function: PlayAnimation
         arguments: []
         outcomes: []
-  - id: 17
-    name: Node17
-    position: {x: 1394.7142, y: 732.1323}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
   - id: 18
     name: Node18
-    position: {x: -73.41657, y: 675.1131}
+    position: {x: 1028.6567, y: -126.54954}
     effects:
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 1
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 5
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 1
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
     - nextNodeID: -1
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments:
+        - id: 1
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 19
     name: Node19
-    position: {x: -30.856255, y: 579.3524}
+    position: {x: 295.55005, y: 160.25003}
     effects:
-    - nextNodeID: -1
+    - nextNodeID: 27
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
-  - id: 20
-    name: Node20
-    position: {x: 1208.7131, y: 733.63354}
-    effects:
     - nextNodeID: -1
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 21
-    name: Node21
-    position: {x: 1650.2765, y: 422.4112}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 22
-    name: Node22
-    position: {x: 2256.761, y: 802.79407}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 23
     name: Node23
-    position: {x: NaN, y: NaN}
+    position: {x: -104.94038, y: 9.13681}
     effects:
-    - nextNodeID: -1
+    - nextNodeID: 27
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 24
     name: Node24
-    position: {x: NaN, y: NaN}
+    position: {x: -552.2761, y: 16.92798}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 25
     name: Node25
-    position: {x: NaN, y: NaN}
+    position: {x: 147.84177, y: -127.35825}
     effects:
-    - nextNodeID: -1
-      sequenceMode: 2
+    - nextNodeID: 4
+      sequenceMode: 0
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 0
+      function:
+        context: {fileID: 0}
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 26
     name: Node26
-    position: {x: NaN, y: NaN}
+    position: {x: -225.01988, y: -199.05927}
     effects:
-    - nextNodeID: -1
+    - nextNodeID: 25
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 27
     name: Node27
-    position: {x: NaN, y: NaN}
+    position: {x: 549.7491, y: 56.6505}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
   - id: 28
     name: Node28
-    position: {x: NaN, y: NaN}
+    position: {x: 266.877, y: -315.47748}
     effects:
-    - nextNodeID: -1
+    - nextNodeID: 4
       sequenceMode: 2
       wait: 0
       function:
         context: {fileID: 0}
-        module: 
-        function: 
+        module: FlowModule_Animation
+        function: PlayAnimation
         arguments: []
         outcomes: []
-  - id: 29
-    name: Node29
-    position: {x: 1822.6166, y: 84.560646}
-    effects:
     - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 30
-    name: Node30
-    position: {x: 614.0259, y: -141.92862}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
-      function:
-        context: {fileID: 0}
-        module: 
-        function: 
-        arguments: []
-        outcomes: []
-  - id: 31
-    name: Node31
-    position: {x: 1110.3296, y: 146.61987}
-    effects:
-    - nextNodeID: -1
-      sequenceMode: 2
+      sequenceMode: 0
       wait: 0
       function:
         context: {fileID: 0}
@@ -450,3 +350,16 @@ MonoBehaviour:
         outcomes: []
   references:
     version: 1
+    00000000:
+      type: {class: Argument_Float, ns: , asm: Assembly-CSharp}
+      data:
+        name: time
+        type: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        value: 0
+    00000001:
+      type: {class: Argument_Object, ns: , asm: Assembly-CSharp}
+      data:
+        name: clip
+        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        value: {fileID: 0}

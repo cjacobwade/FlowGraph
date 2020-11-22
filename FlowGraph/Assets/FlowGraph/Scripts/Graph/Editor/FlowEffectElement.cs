@@ -95,12 +95,14 @@ public class FlowEffectElement : VisualElement
 		{
 			enumField.bindingPath = effectProperty.FindPropertyRelative("sequenceMode").propertyPath;
 			timeField.bindingPath = effectProperty.FindPropertyRelative("wait").propertyPath;
+
+			RenameButton();
 		}
 	}
 
 	private void Selector_OnMouseDown(MouseDownEvent evt)
 	{
-		if (movingElement != null || movingEffectElement != null)
+		if (movingEffectElement != null)
 			return;
 
 		evt.StopPropagation();
@@ -111,6 +113,8 @@ public class FlowEffectElement : VisualElement
 		graphView.RegisterCallback<MouseUpEvent>(Selector_OnMouseUp);
 
 		movingEffectElement = this;
+
+		nodeElement.Unbind();
 
 		movingElement = new VisualElement();
 		movingElement.style.width = layout.width;
@@ -129,106 +133,91 @@ public class FlowEffectElement : VisualElement
 
 	private void Selector_OnMouseMove(MouseMoveEvent evt)
 	{
-		if(movingEffectElement != null)
+		if (movingEffectElement != this)
+			return;
+
+		FlowNodeElement prevParentNode = nodeElement;
+		FlowNodeElement newParentNode = null;
+
+		graphView.Query<FlowNodeElement>().ForEach(n =>
 		{
-			FlowNodeElement prevParentNode = nodeElement;
-			FlowNodeElement newParentNode = null;
+			Vector2 localPoint = VisualElementExtensions.WorldToLocal(n, evt.mousePosition);
+			if (n.ContainsPoint(localPoint) && (newParentNode == null || n.layer > newParentNode.layer))
+				newParentNode = n;
+		});
 
-			graphView.Query<FlowNodeElement>().ForEach(n =>
+		if(newParentNode != null)
+		{
+			List<FlowEffectElement> otherEffects = newParentNode.Query<FlowEffectElement>().ToList();
+			otherEffects.Remove(this);
+
+			otherEffects.Sort((x, y) => x.layout.y.CompareTo(y.layout.y));
+
+			Vector2 nodeMousePos = VisualElementExtensions.WorldToLocal(newParentNode, evt.mousePosition);
+
+			int prevSiblingIndex = -1;
+			if (prevParentNode != null)
+				prevSiblingIndex = newParentNode.Contents.IndexOf(this);
+
+			int siblingIndex = 0;
+			foreach(var e in otherEffects)
 			{
-				Vector2 localPoint = VisualElementExtensions.WorldToLocal(n, evt.mousePosition);
-				if (n.ContainsPoint(localPoint) && (newParentNode == null || n.layer > newParentNode.layer))
-					newParentNode = n;
-			});
+				Rect nodeEffectRect = e.ChangeCoordinatesTo(newParentNode, new Rect(Vector2.zero, e.layout.size));
 
-			if(newParentNode != null)
+				Vector2 nodeEffectPos = new Vector2(nodeEffectRect.x, nodeEffectRect.y);
+				if (prevSiblingIndex > siblingIndex)
+					nodeEffectPos.y += nodeEffectRect.height;
+
+				if (nodeMousePos.y > nodeEffectPos.y)
+					siblingIndex++;
+			}
+
+			Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Effect Moved");	
+
+			bool changingHierachy = prevParentNode != newParentNode || prevSiblingIndex != siblingIndex;
+
+			if(changingHierachy)
 			{
-				List<FlowEffectElement> otherEffects = new List<FlowEffectElement>();
-				newParentNode.Query<FlowEffectElement>().ForEach(e =>
+				if(prevParentNode != null)
 				{
-					if (e == this) return;
-					otherEffects.Add(e);
-				});
-
-				otherEffects.Sort((x, y) => x.layout.y.CompareTo(y.layout.y));
-
-				Vector2 nodeMousePos = VisualElementExtensions.WorldToLocal(newParentNode, evt.mousePosition);
-
-				int prevSiblingIndex = -1;
-				if (prevParentNode != null)
-					prevSiblingIndex = prevParentNode.Contents.IndexOf(this);
-
-				int siblingIndex = 0;
-				foreach(var e in otherEffects)
-				{
-					Rect nodeEffectRect = e.ChangeCoordinatesTo(newParentNode, new Rect(Vector2.zero, e.layout.size));
-
-					Vector2 nodeEffectPos = new Vector2(nodeEffectRect.x, nodeEffectRect.y);
-					if (prevSiblingIndex > siblingIndex)
-						nodeEffectPos.y += nodeEffectRect.height;
-
-					if (nodeMousePos.y > nodeEffectPos.y)
-						siblingIndex++;
+					prevParentNode.node.effects.Remove(effect);
+					prevParentNode.Contents.Remove(this);
 				}
 
-				Undo.RegisterCompleteObjectUndo(graphView.flowGraph, "Effect Moved");	
-
-				bool changingHierachy = prevParentNode != newParentNode || prevSiblingIndex != siblingIndex;
-
-				if (prevParentNode != newParentNode)
+				if(newParentNode != null)
 				{
-					if (prevParentNode != null)
-					{
-						prevParentNode.node.effects.Remove(effect);
-						prevParentNode.Contents.Remove(this);
-					}
+					if(newParentNode != prevParentNode)
+						newParentNode.Unbind();
 
-					nodeElement = newParentNode;
-				}
-				else 
-				{
-					if (changingHierachy)
-					{
-						newParentNode.node.effects.Remove(effect);
-						newParentNode.Contents.Remove(this);
-					}
-				}
-
-				if (changingHierachy)
-				{
 					newParentNode.Contents.Insert(siblingIndex, this);
 					newParentNode.node.effects.Insert(siblingIndex, effect);
 
-					SerializedObject.Update();
-
-					OnEffectSelected(this);
+					nodeElement = newParentNode;
 				}
+
+				SerializedObject.Update();
 			}
-			else
+		}
+		else
+		{
+			if (prevParentNode != null)
 			{
-				if (prevParentNode != null)
+				int prevSiblingIndex = prevParentNode.Contents.IndexOf(this);
+				if( prevSiblingIndex == prevParentNode.node.effects.Count - 1)
 				{
-					int prevSiblingIndex = prevParentNode.Contents.IndexOf(this);
-					if( prevSiblingIndex == prevParentNode.node.effects.Count - 1)
-					{
-						// hack to fix error when dragging last effect out of node
-						var sp = graphView.SerializedObject.FindProperty("startNodeID");
-						graphView.window.PropertyField.BindProperty(sp);
-						graphView.window.PropertyField.label = string.Empty;
-					}
-
-					movingElement.Add(movingEffectElement);
-					nodeElement = null;
-
-					prevParentNode.node.effects.Remove(effect);
-
-					prevParentNode.RebuildEffectElements();
-
-					OnEffectSelected(this);
+					// hack to fix error when dragging last effect out of node
+					var sp = graphView.SerializedObject.FindProperty("startNodeID");
+					graphView.window.PropertyField.BindProperty(sp);
+					graphView.window.PropertyField.label = string.Empty;
 				}
 
-				movingElement.transform.position = evt.mousePosition - Vector2.up * layout.height - moveOffset;
+				movingElement.Add(movingEffectElement);
+				nodeElement = null;
+
+				prevParentNode.node.effects.Remove(effect);
 			}
+
+			movingElement.transform.position = evt.mousePosition - Vector2.up * layout.height - moveOffset;
 		}
 	}
 
@@ -242,7 +231,8 @@ public class FlowEffectElement : VisualElement
 		{
 			if (nodeElement != null)
 			{
-				nodeElement.RebuildEffectElements();
+				nodeElement.BindEffects();
+				OnEffectSelected(this);
 			}
 			else
 			{
@@ -309,7 +299,6 @@ public class FlowEffectElement : VisualElement
 
 	private void EffectButton_OnClicked()
 	{
-		Rebind();
 		OnEffectSelected(this);
 	}
 }

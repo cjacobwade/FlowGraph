@@ -61,7 +61,6 @@ public class ModuleFunctionDrawer : PropertyDrawer
 			using (var check = new EditorGUI.ChangeCheckScope())
 			{
 				moduleIndex = EditorGUI.Popup(position, moduleProp.displayName, moduleIndex, moduleDisplayNames.ToArray());
-				moduleProp.stringValue = modules[moduleIndex];
 
 				var functionProp = property.FindPropertyRelative("function");
 
@@ -71,20 +70,25 @@ public class ModuleFunctionDrawer : PropertyDrawer
 				position.y += EditorGUIUtility.singleLineHeight;
 
 				functionIndex = EditorGUI.Popup(position, functionProp.displayName, functionIndex, functions.ToArray());
-				functionProp.stringValue = functions[functionIndex];
-				
-				if (GUI.changed)
+
+				MethodInfo methodInfo = moduleInfos[moduleIndex].methodInfos[functionIndex];
+				ParameterInfo[] parameters = methodInfo.GetParameters();
+
+				if (GUI.changed || parameters.Length != argsProp.arraySize)
 				{
-					property.serializedObject.ApplyModifiedProperties();
+					if (GUI.changed)
+					{
+						moduleProp.stringValue = modules[moduleIndex];
+						functionProp.stringValue = functions[functionIndex];
+
+						property.serializedObject.ApplyModifiedProperties();
+					}
 
 					// Changed module or function so lets refresh arguments
-
-					MethodInfo methodInfo = moduleInfos[moduleIndex].methodInfos[functionIndex];
 					if (methodInfo != null)
 					{
 						List<ArgumentBase> arguments = new List<ArgumentBase>();
 
-						var parameters = methodInfo.GetParameters();
 						for (int i = 1; i < parameters.Length; i++) // skip first param because we know this will be effectinstance
 						{
 							var argument = ArgumentHelper.GetArgumentOfType(parameters[i].ParameterType);

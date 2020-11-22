@@ -7,6 +7,7 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using System.Reflection;
 using System;
+using UnityEngine.Profiling;
 
 public class FlowGraphWindow : EditorWindow
 {
@@ -116,10 +117,7 @@ public class FlowGraphWindow : EditorWindow
 	private void GraphView_OnEffectSelected(FlowEffectElement effectRot)
 	{
 		if (selectedEffectElement != null)
-		{
-			selectedEffectElement.Unbind();
 			selectedEffectElement.styleSheets.Remove(selectedStyle);
-		}
 
 		selectedEffectElement = effectRot;
 
@@ -127,8 +125,24 @@ public class FlowGraphWindow : EditorWindow
 		{
 			var effectProp = selectedEffectElement.FindEffectProperty();
 			if (effectProp != null)
-			{ 
+			{
+				if(!effectProp.isExpanded)
+					effectProp.isExpanded = true;
+
+				var iter = effectProp.Copy();
+				while (iter.Next(true))
+				{
+					if(!iter.isExpanded)
+						iter.isExpanded = true;
+				}
+
+				serializedObject.ApplyModifiedProperties();
+
+				Profiler.BeginSample("BindProperty");
+
 				propertyField.BindProperty(effectProp);
+
+				Profiler.EndSample(); // BindProperty
 
 				var effect = selectedEffectElement.effect;
 				string label = string.Format("{0} - {1}", effect.function.module.Replace("FlowModule_", ""), effect.function.function);
