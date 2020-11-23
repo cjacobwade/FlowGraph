@@ -11,7 +11,7 @@ public class FlowRunner : MonoBehaviour
 	{
 		FlowManager.Instance.PlayFlow(flowGraph);
 	}
-
+	
 	private void OnDisable()
 	{
 		if(FlowManager.Instance != null)

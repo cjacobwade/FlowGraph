@@ -73,12 +73,19 @@ public class FlowNodeElement : Node
 		RegisterCallback((ContextualMenuPopulateEvent evt) =>
 		{
 			evt.menu.AppendAction("Set as Start Node", ContextMenu_SetStartNode);
+			if (Application.isPlaying)
+				evt.menu.AppendAction("Play From Here", ContextMenu_PlayFromHere);
 		});
 	}
 
 	private void ContextMenu_SetStartNode(DropdownMenuAction evt)
 	{
 		graphView.SetStartNode(node.id);
+	}
+
+	private void ContextMenu_PlayFromHere(DropdownMenuAction evt)
+	{
+		graphView.window.PlayFromNode(node);
 	}
 
 	public void BuildEffects()

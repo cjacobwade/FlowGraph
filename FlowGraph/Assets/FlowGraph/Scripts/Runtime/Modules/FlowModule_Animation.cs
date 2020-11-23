@@ -54,8 +54,7 @@ public class FlowModule_Animation : FlowModule
 		}
 		else
 		{
-			var callback = new FlowCallback_WaitForSeconds(effect, animation.clip.length);
-			RegisterCallback(callback);
+			new FlowCallback_WaitForSeconds(effect, animation.clip.length);
 		}
 	}
 

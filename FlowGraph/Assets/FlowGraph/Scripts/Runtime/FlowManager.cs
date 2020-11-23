@@ -4,35 +4,46 @@ using UnityEngine;
 
 public class FlowManager : Singleton<FlowManager>
 {
-	private List<FlowGraphInstance> activeFlows = new List<FlowGraphInstance>();
+	[SerializeField]
+	private List<FlowGraphInstance> activeGraphs = new List<FlowGraphInstance>();
+	public List<FlowGraphInstance> ActiveGraphs => activeGraphs;
+
+	public event System.Action<FlowGraphInstance> OnGraphPlayed = delegate {};
+	public event System.Action<FlowGraphInstance> OnGraphStopped = delegate {};
 
 	public void PlayFlow(FlowGraph graph)
 	{
-		var flowInstance = new FlowGraphInstance(graph);
-		activeFlows.Add(flowInstance);
+		var graphInstance = new FlowGraphInstance(graph);
+		activeGraphs.Add(graphInstance);
 
-		flowInstance.Play();
+		graphInstance.Play();
+		OnGraphPlayed(graphInstance);
 	}
 
 	public void StopFlow(FlowGraph graph)
 	{
-		for(int i = 0; i < activeFlows.Count; i++)
+		for(int i = 0; i < activeGraphs.Count; i++)
 		{ 
-			var activeFlow = activeFlows[i];
-			if (activeFlow.Graph == graph)
+			var activeGraph = activeGraphs[i];
+			if (activeGraph.Graph == graph)
 			{
-				activeFlow.Stop();
-				activeFlows.RemoveAt(i--);
+				activeGraph.Stop();
+				OnGraphStopped(activeGraph);
+
+				activeGraphs.RemoveAt(i--);
 			}
 		}
 	}
 
 	private void StopAll()
 	{
-		foreach (var activeFlow in activeFlows)
+		foreach (var activeFlow in activeGraphs)
+		{
 			activeFlow.Stop();
+			OnGraphStopped(activeFlow);
+		}
 
-		activeFlows.Clear();
+		activeGraphs.Clear();
 	}
 
 	private void OnDisable()

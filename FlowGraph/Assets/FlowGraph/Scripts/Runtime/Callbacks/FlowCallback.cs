@@ -6,21 +6,19 @@ public abstract class FlowCallback
 {
 	protected FlowEffectInstance effectInstance = null;
 
-	public event System.Action<FlowEffectInstance> OnComplete = delegate {};
-	public event System.Action<FlowEffectInstance> OnCancel = delegate {};
-
 	public FlowCallback(FlowEffectInstance effectInstance)
 	{
 		this.effectInstance = effectInstance;
+		this.effectInstance.OnStopped += (e) => Cancel();
 	}
 
 	public virtual void Complete()
 	{
-		OnComplete(effectInstance);
+		effectInstance.Complete();
 	}
 
 	public virtual void Cancel()
 	{
-		OnCancel(effectInstance);
+		
 	}
 }

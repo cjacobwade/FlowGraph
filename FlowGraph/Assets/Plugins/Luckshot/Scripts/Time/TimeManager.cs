@@ -72,6 +72,10 @@ public class TimeManager : Singleton<TimeManager>
 		Time.fixedDeltaTime = defaultFixedDeltaTime;
 
 		TimeScaleLens.OnValueChanged += TimeScaleLens_OnValueChanged;
+		
+		activeTimeInvokes.Clear();
+		activeUnscaledTimeInvokes.Clear();
+		activeFrameInvokes.Clear();
 
 		for (int i = 0; i < delayedInvokePoolSize; i++)
 		{

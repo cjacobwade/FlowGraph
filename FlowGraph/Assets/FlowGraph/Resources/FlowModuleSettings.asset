@@ -15,5 +15,5 @@ MonoBehaviour:
   moduleDefaults:
   - moduleName: FlowModule_Core
     forceUOD: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
-  moduleName: FlowModule_Animation
-  functionName: GOTO
+  - moduleName: FlowModule_Audio
+    forceUOD: {fileID: 11400000, guid: ca5d533c75a43604496fa07fec358715, type: 2}

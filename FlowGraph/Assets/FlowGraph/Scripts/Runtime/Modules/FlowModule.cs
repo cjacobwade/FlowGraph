@@ -9,9 +9,4 @@ public class FlowModule : MonoBehaviour
 		if(effect != null)
 			effect.Complete();
 	}
-
-	public void RegisterCallback(FlowCallback callback)
-	{
-		callback.OnComplete += Complete;
-	}
 }

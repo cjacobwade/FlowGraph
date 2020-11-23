@@ -10,6 +10,11 @@ public class FlowNodeInstance
 
 	public List<FlowEffectInstance> effectInstances = new List<FlowEffectInstance>();
 
+	private List<FlowEffectInstance> activeEffects = new List<FlowEffectInstance>();
+	public List<FlowEffectInstance> ActiveEffects => activeEffects;
+
+	public event Action<FlowNodeInstance> OnStarted = delegate { };
+	public event Action<FlowNodeInstance> OnStopped = delegate { };
 	public event Action<FlowNodeInstance> OnComplete = delegate { };
 
 	public event Action<FlowNodeInstance, FlowEffectInstance> OnEffectStarted = delegate { };
@@ -32,18 +37,28 @@ public class FlowNodeInstance
 
 	public void Play()
 	{
+		OnStarted(this);
+
 		for(int i = 0; i < effectInstances.Count; i++)
 		{
 			FlowEffectInstance effectInstance = effectInstances[i];
-			if(effectInstance.effect.sequenceMode == FlowEffect.SequenceMode.After)
+			if (effectInstance.effect.sequenceMode == FlowEffect.SequenceMode.After)
+			{
 				effectInstance.Play();
+				activeEffects.Add(effectInstance);
+			}
 		}
 	}
 
 	public void Stop()
 	{
 		foreach (var effectInstance in effectInstances)
+		{
 			effectInstance.Stop();
+			activeEffects.Remove(effectInstance);
+		}
+
+		OnStopped(this);
 	}
 
 	private void EffectInstance_OnStarted(FlowEffectInstance effectInstance)
@@ -55,10 +70,11 @@ public class FlowNodeInstance
 		int effectIndex = effectInstances.IndexOf(effectInstance);
 		for (int i = effectIndex + 1; i < effectInstances.Count; i++)
 		{
-			FlowEffectInstance nextEffectIndex = effectInstances[i];
-			if (nextEffectIndex.effect.sequenceMode == FlowEffect.SequenceMode.WithPrev)
+			FlowEffectInstance nextEffectInstance = effectInstances[i];
+			if (nextEffectInstance.effect.sequenceMode == FlowEffect.SequenceMode.WithPrev)
 			{
-				nextEffectIndex.Play();
+				nextEffectInstance.Play();
+				activeEffects.Add(nextEffectInstance);
 			}
 			else
 			{
@@ -69,18 +85,21 @@ public class FlowNodeInstance
 
 	private void EffectInstance_OnCompleted(FlowEffectInstance effect)
 	{
-		OnEffectComplete(this, effect);
-
 		int effectIndex = effectInstances.IndexOf(effect);
 		if (effectIndex < effectInstances.Count - 1)
 		{
 			FlowEffectInstance nextEffectInstance = effectInstances[effectIndex + 1];
 			if (nextEffectInstance.effect.sequenceMode == FlowEffect.SequenceMode.AfterPrev)
+			{
 				nextEffectInstance.Play();
+				activeEffects.Add(nextEffectInstance);
+			}
 		}
 		else
 		{
 			OnComplete(this);
 		}
+
+		OnEffectComplete(this, effect);
 	}
 }

@@ -25,35 +25,48 @@ public class FlowGraphWindow : EditorWindow
 
 	private StyleSheet selectedStyle = null;
 
+	private StyleSheet runningEffectStyle = null;
+	private StyleSheet runningPreEffectStyle = null;
+	private StyleSheet runningNodeStyle = null;
+
 	// example of width resizing based on mouse capture
 	// https://github.com/Unity-Technologies/UIElementsExamples/blob/master/Assets/QuickIntro/Editor/FloatingDemoWindow.cs
 
 	public static FlowGraphWindow OpenWindow(FlowGraph flowGraph)
 	{
 		FlowGraphWindow flowGraphWindow = GetWindow<FlowGraphWindow>();
-		flowGraphWindow.titleContent = new GUIContent(flowGraph.name);
-
 		return flowGraphWindow;
 	}
 
 	private void OnEnable()
 	{
+		Selection.selectionChanged -= OnSelectionChanged;
+		Selection.selectionChanged += OnSelectionChanged;
+
+		EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+		EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
 		FlowGraph flowGraph = Selection.activeObject as FlowGraph;
 		if (flowGraph == null)
 			return;
-
-		rootVisualElement.Clear();
-		rootVisualElement.name = "flow-root";
 
 		Undo.undoRedoPerformed -= Undo_OnUndoRedo;
 		Undo.undoRedoPerformed += Undo_OnUndoRedo;
 
 		this.flowGraph = flowGraph;
+		this.titleContent = new GUIContent(flowGraph.name);
+
+		rootVisualElement.Clear();
+		rootVisualElement.name = "flow-root";
 
 		serializedObject = new SerializedObject(flowGraph);
 		rootVisualElement.AddStyleSheet("FlowGraph");
 
 		selectedStyle = UIElementUtils.GetStyleSheet("FlowGraph_Selected");
+
+		runningEffectStyle = UIElementUtils.GetStyleSheet("FlowGraph_RunningEffect");
+		runningPreEffectStyle = UIElementUtils.GetStyleSheet("FlowGraph_RunningPreEffect");
+		runningNodeStyle = UIElementUtils.GetStyleSheet("FlowGraph_RunningNode");
 
 		// Frame View
 		VisualElement frameView = new VisualElement();
@@ -102,6 +115,222 @@ public class FlowGraphWindow : EditorWindow
 		inspector.Add(propertyField);
 
 		FlowEffectElement.ResetMoveState();
+
+		if (Application.isPlaying)
+			RegisterRuntime();
+		else
+			UnregisterRuntime();
+	}
+
+	private void OnDisable()
+	{
+		UnregisterRuntime();
+	}
+
+	public void PlayFromNode(FlowNode node)
+	{
+		if (FlowManager.Instance != null)
+		{
+			FlowGraphInstance targetGraph = null;
+			FlowNodeInstance targetNode = null;
+
+			foreach (var graphInstance in FlowManager.Instance.ActiveGraphs)
+			{
+				foreach (var nodeInstance in graphInstance.nodeInstances)
+				{
+					if (nodeInstance.node == node)
+					{
+						targetGraph = graphInstance;
+						targetNode = nodeInstance;
+					}
+				}
+			}
+
+			if (targetGraph != null)
+			{
+				targetGraph.Stop();
+				targetNode.Play();
+			}
+		}
+	}
+
+	private void OnPlayModeStateChanged(PlayModeStateChange stateChange)
+	{
+		OnEnable();
+
+		if (stateChange == PlayModeStateChange.EnteredPlayMode)
+		{
+			RegisterRuntime();
+		}
+		else if(stateChange == PlayModeStateChange.ExitingPlayMode)
+		{
+			UnregisterRuntime();
+		}
+	}
+
+	private void RegisterRuntime()
+	{
+		if (FlowManager.Instance != null)
+		{
+			FlowManager.Instance.OnGraphPlayed += GraphInstance_OnPlayed;
+			FlowManager.Instance.OnGraphStopped += GraphInstance_OnStopped;
+
+			foreach (var activeGraph in FlowManager.Instance.ActiveGraphs)
+			{
+				GraphInstance_OnPlayed(activeGraph);
+
+				foreach (var activeNode in activeGraph.ActiveNodes)
+				{
+					NodeInstance_OnStarted(activeNode);
+
+					foreach (var activeEffect in activeNode.ActiveEffects)
+					{
+						EffectInstance_OnInvoked(activeEffect);
+					}
+				}
+			}
+		}
+	}
+
+	private void UnregisterRuntime()
+	{
+		if (FlowManager.Instance != null)
+		{
+			FlowManager.Instance.OnGraphPlayed -= GraphInstance_OnPlayed;
+			FlowManager.Instance.OnGraphStopped -= GraphInstance_OnStopped;
+
+			foreach (var activeGraph in FlowManager.Instance.ActiveGraphs)
+			{
+				GraphInstance_OnStopped(activeGraph);
+
+				foreach (var activeNode in activeGraph.ActiveNodes)
+				{
+					NodeInstance_OnStoppedOrComplete(activeNode);
+
+					foreach (var activeEffect in activeNode.ActiveEffects)
+					{
+						EffectInstance_OnStoppedOrComplete(activeEffect);
+					}
+				}
+			}
+		}
+	}
+
+	private void GraphInstance_OnPlayed(FlowGraphInstance graphInstance)
+	{
+		foreach (var nodeInstance in graphInstance.nodeInstances)
+		{
+			nodeInstance.OnStarted += NodeInstance_OnStarted;
+
+			nodeInstance.OnStopped += NodeInstance_OnStoppedOrComplete;
+			nodeInstance.OnComplete += NodeInstance_OnStoppedOrComplete;
+
+			foreach (var effectInstance in nodeInstance.effectInstances)
+			{
+				effectInstance.OnInvoked += EffectInstance_OnInvoked;
+				effectInstance.OnStarted += EffectInstance_OnStarted;
+
+				effectInstance.OnStopped += EffectInstance_OnStoppedOrComplete;
+				effectInstance.OnComplete += EffectInstance_OnStoppedOrComplete;
+			}
+		}
+	}
+
+	private void GraphInstance_OnStopped(FlowGraphInstance graphInstance)
+	{
+		rootVisualElement.Query<FlowNodeElement>().ForEach(n =>
+		{
+			n.styleSheets.Remove(runningNodeStyle);
+			n.Query<FlowEffectElement>().ForEach(e => 
+			{
+				e.styleSheets.Remove(runningEffectStyle);
+			});
+		});
+
+		foreach (var nodeInstance in graphInstance.nodeInstances)
+		{
+			nodeInstance.OnStarted -= NodeInstance_OnStarted;
+
+			nodeInstance.OnStopped -= NodeInstance_OnStoppedOrComplete;
+			nodeInstance.OnComplete -= NodeInstance_OnStoppedOrComplete;
+
+			foreach (var effectInstance in nodeInstance.effectInstances)
+			{
+				effectInstance.OnInvoked -= EffectInstance_OnInvoked;
+				effectInstance.OnStarted -= EffectInstance_OnStarted;
+
+				effectInstance.OnStopped -= EffectInstance_OnStoppedOrComplete;
+				effectInstance.OnComplete -= EffectInstance_OnStoppedOrComplete;
+			}
+		}
+	}
+
+	private void NodeInstance_OnStarted(FlowNodeInstance nodeInstance)
+	{
+		rootVisualElement.Query<FlowNodeElement>().ForEach(n =>
+		{
+			if(n.node == nodeInstance.node)
+				n.styleSheets.Add(runningNodeStyle);
+		});
+	}
+
+	private void NodeInstance_OnStoppedOrComplete(FlowNodeInstance nodeInstance)
+	{
+		rootVisualElement.Query<FlowNodeElement>().ForEach(n =>
+		{
+			if (n.node == nodeInstance.node)
+				n.styleSheets.Remove(runningNodeStyle);
+		});
+	}
+
+	private void EffectInstance_OnInvoked(FlowEffectInstance effectInstance)
+	{
+		rootVisualElement.Query<FlowNodeElement>().ForEach(n =>
+		{
+			n.Query<FlowEffectElement>().ForEach(e =>
+			{
+				if (e.effect == effectInstance.effect)
+				{
+					e.styleSheets.Add(runningPreEffectStyle);
+				}
+			});
+		});
+	}
+
+	private void EffectInstance_OnStarted(FlowEffectInstance effectInstance)
+	{
+		rootVisualElement.Query<FlowNodeElement>().ForEach(n =>
+		{
+			n.Query<FlowEffectElement>().ForEach(e =>
+			{
+				if (e.effect == effectInstance.effect)
+				{
+					e.styleSheets.Remove(runningPreEffectStyle);
+					e.styleSheets.Add(runningEffectStyle);
+				}
+			});
+		});
+	}
+
+	private void EffectInstance_OnStoppedOrComplete(FlowEffectInstance effectInstance)
+	{
+		rootVisualElement.Query<FlowNodeElement>().ForEach(n =>
+		{
+			n.Query<FlowEffectElement>().ForEach(e =>
+			{
+				if (e.effect == effectInstance.effect)
+				{
+					e.styleSheets.Remove(runningPreEffectStyle);
+					e.styleSheets.Remove(runningEffectStyle);
+				}
+			});
+		});
+	}
+
+	private void OnSelectionChanged()
+	{
+		if(Selection.activeObject != flowGraph)
+			OnEnable();	
 	}
 
 	private void Undo_OnUndoRedo()

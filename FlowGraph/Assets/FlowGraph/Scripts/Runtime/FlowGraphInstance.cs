@@ -11,6 +11,9 @@ public class FlowGraphInstance
 
 	public List<FlowNodeInstance> nodeInstances = new List<FlowNodeInstance>();
 
+	private List<FlowNodeInstance> activeNodes = new List<FlowNodeInstance>();
+	public List<FlowNodeInstance> ActiveNodes => activeNodes;
+
 	public event Action<FlowNodeInstance> OnNodeComplete = delegate { };
 	public event Action<FlowNodeInstance, FlowEffectInstance> OnEffectComplete = delegate { };
 
@@ -41,7 +44,10 @@ public class FlowGraphInstance
 			}
 
 			if (nextNodeInstance != null)
+			{
 				nextNodeInstance.Play();
+				activeNodes.Add(nextNodeInstance);
+			}
 		}
 	}
 
@@ -52,6 +58,7 @@ public class FlowGraphInstance
 			if (nodeInstance.node.id == graph.startNodeID)
 			{
 				nodeInstance.Play();
+				activeNodes.Add(nodeInstance);
 				break;
 			}
 		}
@@ -60,6 +67,9 @@ public class FlowGraphInstance
 	public void Stop()
 	{
 		foreach (var nodeInstance in nodeInstances)
+		{
 			nodeInstance.Stop();
+			activeNodes.Remove(nodeInstance);
+		}
 	}
 }
