@@ -14,7 +14,7 @@ public class ArgumentContainer : MonoBehaviour
 	}
 
 	[SerializeField]
-	private ModuleFunction function = new ModuleFunction();
+	private FlowModuleFunction function = new FlowModuleFunction();
 
 	[SerializeField]
 	private Argument_Float floatArgument = new Argument_Float();

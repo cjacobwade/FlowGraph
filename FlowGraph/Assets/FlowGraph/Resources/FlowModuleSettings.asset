@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: FlowModuleSettings
   m_EditorClassIdentifier: 
   moduleDefaults:
-  - moduleName: FlowModule_Core
+  - moduleName: FlowModule_Animation
     forceUOD: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}

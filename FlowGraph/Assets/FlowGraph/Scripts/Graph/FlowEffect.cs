@@ -12,15 +12,10 @@ public class FlowEffect
 		After = 2
 	}
 
-	public FlowEffect()
-	{
-		function = FlowTypeCache.GetDefaultModuleFunction();
-	}
-
 	public int nextNodeID = -1;
 
 	public SequenceMode sequenceMode = SequenceMode.After;
 	public float wait = 0f;
 
-	public ModuleFunction function = new ModuleFunction();
+	public FlowModuleFunction function = new FlowModuleFunction();
 }

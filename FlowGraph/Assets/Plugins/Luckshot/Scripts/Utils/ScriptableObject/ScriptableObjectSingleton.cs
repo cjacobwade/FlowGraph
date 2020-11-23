@@ -10,8 +10,7 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
 		get
 		{
 			if(!_hasInstance)
-			{
-
+			{ 
 				_instance = Resources.Load(typeof(T).ToString()) as T;
 				
 				if(!_instance)

@@ -6,8 +6,8 @@ using System.Reflection;
 using System.Linq;
 using UnityEngine.Profiling;
 
-[CustomPropertyDrawer(typeof(ModuleFunction))]
-public class ModuleFunctionDrawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(FlowModuleFunction))]
+public class FlowModuleFunctionDrawer : PropertyDrawer
 {
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
@@ -48,7 +48,7 @@ public class ModuleFunctionDrawer : PropertyDrawer
 			{
 				var contextProp = property.FindPropertyRelative("context");
 
-				var moduleUOD = FlowModuleSettings.Instance.GetDefaultUOD(moduleProp.stringValue);
+				var moduleUOD = FlowTypeCache.FlowModuleSettings.GetDefaultUOD(moduleProp.stringValue);
 				if (moduleUOD != null)
 				{
 					if (contextProp.objectReferenceValue != moduleUOD)

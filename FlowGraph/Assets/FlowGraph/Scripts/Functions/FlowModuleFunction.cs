@@ -4,13 +4,19 @@ using UnityEngine;
 using System.Reflection;
 
 [System.Serializable]
-public class ModuleFunction 
+public class FlowModuleFunction 
 {
 	[System.Serializable]
 	public class Outcome
 	{
 		public string name = string.Empty;
 		public int nextNodeID = 0;
+	}
+
+	public FlowModuleFunction()
+	{
+		if(FlowTypeCache.FlowModuleSettings != null)
+			context = FlowTypeCache.FlowModuleSettings.GetDefaultUOD(module);
 	}
 
 	public UniqueObjectData context = null;

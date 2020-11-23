@@ -16,6 +16,14 @@ public static class FlowTypeCache
 	static FlowTypeCache()
 	{
 		initialized = false;
+		EditorApplication.update += LoadFlowModuleSettings;
+	}
+
+	// Hack to get this to load in editor without error spew
+	private static void LoadFlowModuleSettings()
+	{
+		flowModuleSettings = Resources.Load<FlowModuleSettings>("FlowModuleSettings");
+		EditorApplication.update -= LoadFlowModuleSettings;
 	}
 
 	// Iterate over child classes of FlowModule
@@ -52,14 +60,6 @@ public static class FlowTypeCache
 		typeof(UnityEngine.Object[])
 	};
 
-	private static readonly List<string> acceptedAssemblies = new List<string>()
-	{	
-		"Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
-		"Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
-		"Assembly-CSharp-Editor-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
-		"Assembly-CSharp-Editor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
-	};
-
 	private static List<Assembly> assemblies = new List<Assembly>();
 
 	private static Dictionary<Type, ModuleInfo> moduleTypeToInfoMap = new Dictionary<Type, ModuleInfo>();
@@ -72,20 +72,27 @@ public static class FlowTypeCache
 	private static Dictionary<string, Dictionary<string, MethodInfo>> propertyNameToInstanceMethodNameMap = new Dictionary<string, Dictionary<string, MethodInfo>>();
 	private static Dictionary<string, Dictionary<string, MethodInfo>> propertyNameToStaticMethodNameMap = new Dictionary<string, Dictionary<string, MethodInfo>>();
 
+	private static FlowModuleSettings flowModuleSettings = null;
+	public static FlowModuleSettings FlowModuleSettings
+	{
+		get
+		{
+			InitializeIfNeeded();
+			return flowModuleSettings;
+		}
+	}
+
 	private static bool initialized = false;
 
 #if UNITY_EDITOR
 	[MenuItem("Luckshot/Cache Type Info")]
 #endif
-	public static void CacheTypeInfo()
+	public static void CacheTypeInfo() 
 	{
 		Clear();
 
 		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-		{
-			if (acceptedAssemblies.Contains(assembly.FullName))
-				assemblies.Add(assembly);
-		}
+			assemblies.Add(assembly);
 
 		CollectFlowModuleInfo();
 		//CollectPropertyItemInfo();
@@ -95,28 +102,24 @@ public static class FlowTypeCache
 
 	private static void InitializeIfNeeded()
 	{
-		if (!initialized)
-			CacheTypeInfo();
-	}
-
-	public static ModuleFunction GetDefaultModuleFunction()
-	{
-		var moduleFunction = new ModuleFunction();
-
-		foreach (var kvp in moduleTypeToInfoMap)
-		{
-			moduleFunction.module = kvp.Key.Name;
-			moduleFunction.function = kvp.Value.methodInfos[0].Name;
-			break;
-		}
-
-		return moduleFunction;
+		if (!initialized) CacheTypeInfo();
 	}
 
 	public static List<ModuleInfo> GetModuleInfos()
 	{
 		InitializeIfNeeded();
-		return moduleTypeToInfoMap.Select(kvp => kvp.Value).ToList(); 
+		return moduleTypeToInfoMap.Select(kvp => kvp.Value).ToList();
+	}
+
+	public static ModuleInfo GetModuleInfo(string module)
+	{
+		InitializeIfNeeded();
+
+		Type type = GetModuleType(module);
+		if (type != null)
+			return GetModuleInfo(type);
+
+		return null;
 	}
 
 	public static ModuleInfo GetModuleInfo(Type type)
@@ -128,7 +131,7 @@ public static class FlowTypeCache
 
 	public static List<PropertyItemInfo> GetPropertyItemInfos()
 	{
-		InitializeIfNeeded();
+		InitializeIfNeeded(); 
 		return propertyItemTypeToInfoMap.Select(kvp => kvp.Value).ToList(); }
 
 	public static PropertyItemInfo GetPropertyItemInfo(Type type)
@@ -178,15 +181,11 @@ public static class FlowTypeCache
 		int numTypes = 0;
 
 		// Note: pulling from just FlowModule's assembly isn't going to get all the right types
-		foreach (var assembly in assemblies)
+		foreach (var assembly in assemblies) 
 		{
 			var assemblyTypes = assembly.GetTypes();
 			foreach (var type in assemblyTypes)
 			{
-#if UNITY_EDITOR
-				EditorUtility.DisplayProgressBar("Cacheing Type Info", "Collecting Flow Modules", numTypes / (float)assemblyTypes.Length);
-#endif
-
 				if (type.IsSubclassOf(typeof(FlowModule)))
 				{
 					ModuleInfo moduleInfo = null;
@@ -230,10 +229,6 @@ public static class FlowTypeCache
 
 			moduleFunctionToMethodInfoLookup.Add(kvp.Key.Name, methodNameToInfoMap);
 		}
-
-#if UNITY_EDITOR
-		EditorUtility.ClearProgressBar();
-#endif
 	}
 
 	/*
@@ -247,10 +242,6 @@ public static class FlowTypeCache
 			var assemblyTypes = assembly.GetTypes();
 			foreach (var type in assemblyTypes)
 			{
-#if UNITY_EDITOR
-				EditorUtility.DisplayProgressBar("Cacheing Type Info", "Collecting PropertyItems", numTypes / (float)assemblyTypes.Length);
-#endif
-
 				if (type.IsSubclassOf(typeof(PropertyItem)))
 				{
 					PropertyItemInfo propertyItemInfo = null;
@@ -317,10 +308,6 @@ public static class FlowTypeCache
 				numTypes++;
 			}
 		}
-
-#if UNITY_EDITOR
-		EditorUtility.ClearProgressBar();
-#endif
 	}
 	*/
 
