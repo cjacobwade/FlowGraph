@@ -12,23 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9008390113e071f4f9a034c20a60dbc8, type: 3}
   m_Name: FlowGraph_Baba
   m_EditorClassIdentifier: 
-  startNodeID: 1
+  startNodeID: 0
   nodes:
   - id: 0
     name: Node
-    position: {x: -10.600006, y: 289.80002}
+    position: {x: -36.849995, y: 304.9475}
     effects:
-    - nextNodeID: 1
-      sequenceMode: 0
-      wait: 10
-      function:
-        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
-        module: FlowModule_Core
-        function: GOTO
-        arguments: []
-        outcomes: []
     - nextNodeID: -1
-      sequenceMode: 0
+      sequenceMode: 2
       wait: 2
       function:
         context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
@@ -36,20 +27,29 @@ MonoBehaviour:
         function: Play
         arguments: []
         outcomes: []
+    - nextNodeID: 1
+      sequenceMode: 0
+      wait: 3
+      function:
+        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
+        module: FlowModule_Core
+        function: GOTO
+        arguments: []
+        outcomes: []
   - id: 1
     name: Node1
-    position: {x: 406.8, y: 280}
+    position: {x: 425.71503, y: 236.73837}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
       wait: 0
       function:
-        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
+        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
         function: Play
         arguments: []
         outcomes: []
-    - nextNodeID: -1
+    - nextNodeID: 1
       sequenceMode: 0
       wait: 1
       function:

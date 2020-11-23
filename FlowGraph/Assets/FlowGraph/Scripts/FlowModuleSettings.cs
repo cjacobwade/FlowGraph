@@ -17,14 +17,6 @@ public class FlowModuleSettings : ScriptableObject
 	[SerializeField]
 	private ModuleDefault[] moduleDefaults = null;
 
-	[SerializeField]
-	[FlowModuleName]
-	private string moduleName = string.Empty;
-
-	[SerializeField]
-	[FlowFunctionName("moduleName2")]
-	private string functionName = string.Empty;
-
 	private Dictionary<string, UniqueObjectData> moduleToUODMap = null;
 
 	public void Initialize()

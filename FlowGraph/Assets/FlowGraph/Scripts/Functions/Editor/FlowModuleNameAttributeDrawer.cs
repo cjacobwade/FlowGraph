@@ -30,7 +30,10 @@ public class FlowModuleNameAttributeDrawer : PropertyDrawer
 		}
 
 		if (GUI.changed)
+		{
 			property.serializedObject.ApplyModifiedProperties();
+			GUI.changed = false;
+		}
 
 		EditorGUI.EndProperty();
 	}

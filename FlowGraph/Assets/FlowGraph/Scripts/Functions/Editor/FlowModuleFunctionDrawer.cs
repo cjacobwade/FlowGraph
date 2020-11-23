@@ -102,13 +102,27 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 					// Changed module or function so lets refresh arguments
 					if (methodInfo != null)
 					{
+						var existingArgs = (List<ArgumentBase>)EditorUtils.GetTargetObjectOfProperty(argsProp);
+
+						List<System.Type> types = new List<System.Type>();
 						List<ArgumentBase> arguments = new List<ArgumentBase>();
 
 						for (int i = 1; i < parameters.Length; i++) // skip first param because we know this will be effectinstance
 						{
 							var argument = ArgumentHelper.GetArgumentOfType(parameters[i].ParameterType);
 							argument.name = parameters[i].Name;
+							types.Add(parameters[i].ParameterType);
 							arguments.Add(argument);
+						}
+
+						// Retain existing arguments if new arguments are same type
+						for (int i = 0; i < arguments.Count && i < existingArgs.Count; i++)
+						{
+							if (existingArgs[i].Value != null && 
+								existingArgs[i].type == arguments[i].type)
+							{
+								arguments[i].Value = existingArgs[i].Value;
+							}	
 						}
 
 						EditorUtils.SetTargetObjectOfProperty(argsProp, arguments);

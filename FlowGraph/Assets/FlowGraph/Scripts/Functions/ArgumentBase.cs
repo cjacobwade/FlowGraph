@@ -13,8 +13,8 @@ public class ArgumentBase
 	public string name = string.Empty;
 	public string type = string.Empty;
 
-	public virtual object Value
-	{ get { return null; } }
+	public virtual object Value 
+	{ get; set; }
 }
 
 public class Argument<T> : ArgumentBase
@@ -24,8 +24,12 @@ public class Argument<T> : ArgumentBase
 	}
 
 	[SerializeField]
-	protected T value = default;
-	public override object Value => value;
+	private T value = default;
+	public override object Value 
+	{
+		get { return value; }
+		set { this.value = (T)value; }
+	}
 }
 
 [Serializable]

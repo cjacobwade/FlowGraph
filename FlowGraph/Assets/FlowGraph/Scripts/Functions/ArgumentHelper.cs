@@ -43,7 +43,8 @@ public static class ArgumentHelper
 		{
 			argument = new Argument_Object();
 		}
-		else if(type == typeof(UnityEngine.Object[]))
+		else if(type == typeof(UnityEngine.Object[]) ||
+			type.GetElementType().IsSubclassOf(typeof(UnityEngine.Object)))
 		{
 			argument = new Argument_ObjectArray();
 		}
