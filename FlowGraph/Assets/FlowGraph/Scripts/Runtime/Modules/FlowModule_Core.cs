@@ -4,16 +4,13 @@ using UnityEngine;
 
 public class FlowModule_Core : FlowModule
 {
-	public void WaitForSeconds(FlowEffectInstance effect, float time)
+	public void GOTO(FlowEffectInstance effect)
 	{
-		if (time <= 0f)
-		{
-			TimeManager.Invoke(Complete, effect, 0);
-		}
-		else
-		{
-			var callback = new FlowCallback_WaitForSeconds(effect, time);
-			RegisterCallback(callback);
-		}
+		Complete(effect);
+	}
+
+	public void CancelNode(FlowEffectInstance effect, int nodeIndex)
+	{
+		// How to get reference to running flow instance from effect?
 	}
 }

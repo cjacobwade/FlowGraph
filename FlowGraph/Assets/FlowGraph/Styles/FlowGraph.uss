@@ -66,8 +66,10 @@ FlowNodeElement {
 	-unity-text-align:middle-left;
 }
 
-#FlowNodeRow .#flow-node-row-effect-port-container { 
+#FlowNodeRow .flow-node-row-effect-port-container { 
 	flex-grow:0;
+	padding-left:0px;
+	padding-right:7px;
 }
 
 #flow-root {

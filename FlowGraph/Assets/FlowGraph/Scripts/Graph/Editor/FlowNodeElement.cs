@@ -120,5 +120,6 @@ public class FlowNodeElement : Node
 
 		BuildEffects();
 		BindEffects();
+		ConnectEffects();
 	}
 }

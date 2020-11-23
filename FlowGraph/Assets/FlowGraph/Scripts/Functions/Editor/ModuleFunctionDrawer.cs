@@ -37,24 +37,39 @@ public class ModuleFunctionDrawer : PropertyDrawer
 
 			position.y += EditorGUIUtility.singleLineHeight;
 
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				var contextProp = property.FindPropertyRelative("context");
-				EditorGUI.ObjectField(position, contextProp, typeof(UniqueObjectData));
-
-				if (GUI.changed)
-					property.serializedObject.ApplyModifiedProperties();
-			}
-
 			var moduleInfos = FlowTypeCache.GetModuleInfos();
 
 			List<string> modules = moduleInfos.Select(m => m.typeInfo.Name).ToList();
 			List<string> moduleDisplayNames = moduleInfos.Select(m => m.typeInfo.Name.Replace("FlowModule_", "")).ToList();
 
 			var moduleProp = property.FindPropertyRelative("module");
-			int moduleIndex = Mathf.Max(0, modules.IndexOf(moduleProp.stringValue));
 
-			position.y += EditorGUIUtility.singleLineHeight;
+			using (var check = new EditorGUI.ChangeCheckScope())
+			{
+				var contextProp = property.FindPropertyRelative("context");
+
+				var moduleUOD = FlowModuleSettings.Instance.GetDefaultUOD(moduleProp.stringValue);
+				if (moduleUOD != null)
+				{
+					if (contextProp.objectReferenceValue != moduleUOD)
+					{
+						contextProp.objectReferenceValue = moduleUOD;
+						GUI.changed = true;
+					}
+
+					GUI.enabled = false;
+				}
+
+				EditorGUI.ObjectField(position, contextProp, typeof(UniqueObjectData));
+				position.y += EditorGUIUtility.singleLineHeight;
+
+				if (GUI.changed)
+					property.serializedObject.ApplyModifiedProperties();
+
+				GUI.enabled = true;
+			}
+
+			int moduleIndex = Mathf.Max(0, modules.IndexOf(moduleProp.stringValue));
 
 			var argsProp = property.FindPropertyRelative("arguments"); ;
 

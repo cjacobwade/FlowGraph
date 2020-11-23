@@ -48,7 +48,7 @@ public class FlowNodeInstance
 
 	private void EffectInstance_OnStarted(FlowEffectInstance effectInstance)
 	{
-		Debug.Log(string.Format("{0}: {1}", node.name, effectInstance.effect.function.function));
+		//Debug.Log(string.Format("{0}: {1}", node.name, effectInstance.effect.function.function));
 
 		OnEffectStarted(this, effectInstance);
 

@@ -8,6 +8,6 @@
         <ui:VisualElement style="flex-grow: 1; flex-shrink: 1;">
             <ui:Button text="Animation.PlayAnimation" display-tooltip-when-elided="True" class="flow-node-row-effect-button" style="flex-grow: 1; -unity-text-align: middle-left;" />
         </ui:VisualElement>
-        <ui:VisualElement class="flow-node-row-effect-port-container" style="flex-shrink: 0; width: 25px; background-color: rgb(48, 48, 48); justify-content: center; height: 100%; align-items: center; flex-grow: 0;" />
+        <ui:VisualElement class="flow-node-row-effect-port-container" style="flex-shrink: 0; width: 15px; background-color: rgb(48, 48, 48); justify-content: center; height: 100%; align-items: center; flex-grow: 0;" />
     </ui:VisualElement>
 </ui:UXML>

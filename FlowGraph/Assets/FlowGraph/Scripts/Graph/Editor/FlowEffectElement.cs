@@ -271,11 +271,7 @@ public class FlowEffectElement : VisualElement
 		connectionsToRemove.AddRange(outPort.connections);
 
 		foreach (var connection in connectionsToRemove)
-		{
-			connection.input.Disconnect(connection);
-			connection.output.Disconnect(connection);
 			graphView.RemoveElement(connection);
-		}
 	}
 
 	private void Port_OnPortConnected(FlowPort port, Edge edge)

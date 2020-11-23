@@ -15,8 +15,8 @@ public class ModuleFunction
 
 	public UniqueObjectData context = null;
 
-    public string module = string.Empty;
-    public string function = string.Empty;
+    public string module = "FlowModule_Core";
+    public string function = "GOTO";
 
 	[SerializeReference]
     public List<ArgumentBase> arguments = new List<ArgumentBase>();
