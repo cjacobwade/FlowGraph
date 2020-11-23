@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: FlowModuleSettings
   m_EditorClassIdentifier: 
   moduleDefaults:
-  - moduleName: FlowModule_Animation
+  - moduleName: FlowModule_Core
     forceUOD: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
+  moduleName: FlowModule_Animation
+  functionName: GOTO

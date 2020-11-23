@@ -12,6 +12,7 @@ FlowNodeElement {
 	background-color:rgb(60,60,60);
 }
 
+
 #node-border #title {
 	align-items:center;
 	height:20px;

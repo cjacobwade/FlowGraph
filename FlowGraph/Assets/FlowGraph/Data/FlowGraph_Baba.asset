@@ -16,17 +16,8 @@ MonoBehaviour:
   nodes:
   - id: 0
     name: Node
-    position: {x: -10, y: 288.248}
+    position: {x: -10.600006, y: 289.80002}
     effects:
-    - nextNodeID: -1
-      sequenceMode: 0
-      wait: 2
-      function:
-        context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
-        module: FlowModule_Animation
-        function: Play
-        arguments: []
-        outcomes: []
     - nextNodeID: 1
       sequenceMode: 0
       wait: 10
@@ -36,20 +27,29 @@ MonoBehaviour:
         function: GOTO
         arguments: []
         outcomes: []
-  - id: 1
-    name: Node1
-    position: {x: 347.40002, y: 359}
-    effects:
     - nextNodeID: -1
-      sequenceMode: 2
-      wait: 0
+      sequenceMode: 0
+      wait: 2
       function:
         context: {fileID: 11400000, guid: dd5cad83fe190c54a82960117ae17362, type: 2}
         module: FlowModule_Animation
         function: Play
         arguments: []
         outcomes: []
-    - nextNodeID: 1
+  - id: 1
+    name: Node1
+    position: {x: 406.8, y: 280}
+    effects:
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
+      function:
+        context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
+        module: FlowModule_Animation
+        function: Play
+        arguments: []
+        outcomes: []
+    - nextNodeID: -1
       sequenceMode: 0
       wait: 1
       function:

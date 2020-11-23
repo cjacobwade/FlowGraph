@@ -14,6 +14,8 @@ public class FlowGraphView : GraphView
 
 	public event System.Action<FlowEffectElement> OnEffectSelected = delegate {};
 
+	private StyleSheet startNodeStyle = null;
+
 	public FlowGraphView(FlowGraphWindow window, FlowGraph flowGraph)
 	{
 		this.window = window;
@@ -22,16 +24,24 @@ public class FlowGraphView : GraphView
 		var gridBackground = new GridBackground();
 		gridBackground.name = "flow-grid-background";
 		gridBackground.StretchToParentSize();
+
+		startNodeStyle = UIElementUtils.GetStyleSheet("FlowGraph_StartNode");
+
 		Insert(0, gridBackground);
 
 		SetupManipulators();
 		SetupContextMenu();
 
 		if (flowGraph.nodes.Count == 0)
+		{
 			AddNode(Vector2.one * 100, "Start");
+			flowGraph.startNodeID = 0;
+		}
 
 		foreach (var node in flowGraph.nodes)
 			AddNodeElement(node);
+
+		SetStartNode(flowGraph.startNodeID);
 
 		// Wire up connections
 		this.Query<FlowNodeElement>().ForEach((n) => n.ConnectEffects());
@@ -55,6 +65,26 @@ public class FlowGraphView : GraphView
 		RegisterCallback((ContextualMenuPopulateEvent evt) =>
 		{
 			evt.menu.AppendAction("Add Node", ContextMenu_AddNode);
+		});
+	}
+
+	public void SetStartNode(int nodeID)
+	{
+		int prevNodeID = flowGraph.startNodeID;
+
+		if(nodeID != prevNodeID)
+		{
+			Undo.RecordObject(flowGraph, "Change Start Node");
+			flowGraph.startNodeID = nodeID;
+		}
+
+		this.Query<FlowNodeElement>().ForEach(n =>
+		{
+			if (n.node.id == prevNodeID)
+				n.styleSheets.Remove(startNodeStyle);
+			
+			if(n.node.id == nodeID)
+				n.styleSheets.Add(startNodeStyle);
 		});
 	}
 

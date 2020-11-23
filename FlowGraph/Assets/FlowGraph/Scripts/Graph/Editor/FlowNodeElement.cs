@@ -27,6 +27,8 @@ public class FlowNodeElement : Node
 		this.node = node;
 
 		title = node.name;
+
+		AddToClassList("flow-node-element");
 		
 		style.borderBottomLeftRadius = 8;
 		style.borderBottomRightRadius = 8;
@@ -34,6 +36,8 @@ public class FlowNodeElement : Node
 		style.borderTopLeftRadius = 8;
 
 		UseDefaultStyling();
+
+		SetupContextMenu();
 
 		SetPosition(new Rect(node.position.x, node.position.y, 0, 0));
 
@@ -62,6 +66,19 @@ public class FlowNodeElement : Node
 		BindEffects();
 
 		Add(contents);
+	}
+
+	private void SetupContextMenu()
+	{
+		RegisterCallback((ContextualMenuPopulateEvent evt) =>
+		{
+			evt.menu.AppendAction("Set as Start Node", ContextMenu_SetStartNode);
+		});
+	}
+
+	private void ContextMenu_SetStartNode(DropdownMenuAction evt)
+	{
+		graphView.SetStartNode(node.id);
 	}
 
 	public void BuildEffects()

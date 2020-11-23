@@ -1,0 +1,4 @@
+
+.flow-node-element {
+	background-color: rgb(30, 75, 115)
+}
