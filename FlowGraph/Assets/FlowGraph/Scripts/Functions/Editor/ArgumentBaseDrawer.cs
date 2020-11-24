@@ -13,8 +13,6 @@ public class ArgumentBaseDrawer : PropertyDrawer
 
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
-		Profiler.BeginSample("Argument Base Drawer");
-
 		using (var check = new EditorGUI.ChangeCheckScope())
 		{
 			var argProp = property.FindPropertyRelative("value");
@@ -83,8 +81,6 @@ public class ArgumentBaseDrawer : PropertyDrawer
 				property.serializedObject.ApplyModifiedProperties();
 			}
 		}
-
-		Profiler.EndSample(); // Argument Base Drawer
 	}
 
 	public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

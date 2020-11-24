@@ -10,12 +10,15 @@ using System.Linq;
 using UnityEditor;
 #endif
 
+
+#if UNITY_EDITOR
 [InitializeOnLoad]
+#endif
 public static class FlowTypeCache
 {
 	static FlowTypeCache()
 	{
-		initialized = false;
+		InitializeIfNeeded(); 
 		EditorApplication.update += LoadFlowModuleSettings;
 	}
 
@@ -73,36 +76,36 @@ public static class FlowTypeCache
 	private static Dictionary<string, Dictionary<string, MethodInfo>> propertyNameToStaticMethodNameMap = new Dictionary<string, Dictionary<string, MethodInfo>>();
 
 	private static FlowModuleSettings flowModuleSettings = null;
-	public static FlowModuleSettings FlowModuleSettings
-	{
-		get
-		{
-			InitializeIfNeeded();
-			return flowModuleSettings;
-		}
-	}
+	public static FlowModuleSettings FlowModuleSettings => flowModuleSettings;
 
 	private static bool initialized = false;
+
+	
 
 #if UNITY_EDITOR
 	[MenuItem("Luckshot/Cache Type Info")]
 #endif
 	public static void CacheTypeInfo() 
 	{
-		Clear();
-
 		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+		{
+			if (!ReflectionUtils.ProjectAssemblies.Contains(assembly.FullName))
+				continue;
+
 			assemblies.Add(assembly);
+		}
 
 		CollectFlowModuleInfo();
 		//CollectPropertyItemInfo();
-
-		initialized = true;
 	}
 
 	private static void InitializeIfNeeded()
 	{
-		if (!initialized) CacheTypeInfo();
+		if (!initialized)
+		{
+			CacheTypeInfo();
+			initialized = true;
+		}
 	}
 
 	public static List<ModuleInfo> GetModuleInfos()
@@ -151,29 +154,14 @@ public static class FlowTypeCache
 	public static MethodInfo GetModuleFunction(string module, string function)
 	{
 		InitializeIfNeeded();
-		moduleFunctionToMethodInfoLookup.TryGetValue(module, out Dictionary<string, MethodInfo> moduleFunctionsMap);
-		if(moduleFunctionsMap != null)
+
+		if(	moduleFunctionToMethodInfoLookup.TryGetValue(module, out Dictionary<string, MethodInfo> moduleFunctionsMap) &&
+			moduleFunctionsMap.TryGetValue(function, out MethodInfo methodInfo))
 		{
-			moduleFunctionsMap.TryGetValue(function, out MethodInfo methodInfo);
-			if (methodInfo != null)
-				return methodInfo;
+			return methodInfo;
 		}
 
 		return null;
-	}
-
-	private static void Clear()
-	{
-		assemblies.Clear();
-
-		moduleTypeToInfoMap.Clear();
-		moduleFunctionToMethodInfoLookup.Clear();
-		moduleNameToTypeMap.Clear();
-
-		propertyItemTypeToInfoMap.Clear();
-		propertyNameToInstanceMethodNameMap.Clear();
-		propertyNameToStaticMethodNameMap.Clear();
-		propertyNameToTypeMap.Clear();
 	}
 
 	private static void CollectFlowModuleInfo()
@@ -201,16 +189,14 @@ public static class FlowTypeCache
 							parameters[0].ParameterType == typeof(FlowEffectInstance))
 						{
 							if (moduleInfo == null)
+							{
 								moduleInfo = new ModuleInfo();
+								moduleInfo.typeInfo = type.GetTypeInfo();
+								moduleTypeToInfoMap.Add(type, moduleInfo);
+							}
 
 							moduleInfo.methodInfos.Add(method);
 						}
-					}
-
-					if (moduleInfo != null)
-					{
-						moduleInfo.typeInfo = type.GetTypeInfo();
-						moduleTypeToInfoMap.Add(type, moduleInfo);
 					}
 				}
 

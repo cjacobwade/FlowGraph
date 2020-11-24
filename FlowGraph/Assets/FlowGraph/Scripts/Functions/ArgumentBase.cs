@@ -21,6 +21,7 @@ public class Argument<T> : ArgumentBase
 {
 	public Argument() : base()
 	{
+		type = typeof(T).AssemblyQualifiedName;
 	}
 
 	[SerializeField]

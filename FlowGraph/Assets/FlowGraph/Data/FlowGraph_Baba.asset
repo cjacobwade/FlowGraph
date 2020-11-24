@@ -52,7 +52,7 @@ MonoBehaviour:
         outcomes: []
     - nextNodeID: 1
       sequenceMode: 0
-      wait: 2
+      wait: 3
       function:
         context: {fileID: 11400000, guid: 373d6723744eb3842b98cc2e967144ea, type: 2}
         module: FlowModule_Core
