@@ -64,7 +64,7 @@ public class EventParameterBaseDrawer : PropertyDrawer
 					{
 						if (type != null && type.IsAssignableFrom(typeof(UnityEngine.Object)))
 						{
-							bool allowSceneObjects = argProp.serializedObject == typeof(MonoBehaviour);
+							bool allowSceneObjects = argProp.serializedObject.targetObject.GetType() == typeof(MonoBehaviour);
 							UnityEngine.Object obj = EditorGUI.ObjectField(position, displayName, argProp.objectReferenceValue, type, allowSceneObjects);
 							if (argProp.objectReferenceValue != obj)
 								argProp.objectReferenceValue = obj;
