@@ -38,6 +38,10 @@ public static class ArgumentHelper
 		{
 			argument = new Argument_Vector4();
 		}
+		else if (type == typeof(Color))
+		{
+			argument = new Argument_Color();
+		}
 		else if (type == typeof(UnityEngine.Object) ||
 			type.IsSubclassOf(typeof(UnityEngine.Object)))
 		{

@@ -71,7 +71,7 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 
 			int moduleIndex = Mathf.Max(0, modules.IndexOf(moduleProp.stringValue));
 
-			var argsProp = property.FindPropertyRelative("arguments"); ;
+			var argsProp = property.FindPropertyRelative("arguments");
 
 			using (var check = new EditorGUI.ChangeCheckScope())
 			{

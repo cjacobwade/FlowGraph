@@ -6,7 +6,7 @@ using System.Reflection;
 
 public static class GlobalEventParameterHelper
 {
-	public static EventParameterBase GetArgumentOfType(Type type)
+	public static EventParameterBase GetParameterOfType(Type type)
 	{
 		EventParameterBase parameter = null;
 
@@ -37,6 +37,10 @@ public static class GlobalEventParameterHelper
 		else if (type == typeof(Vector4))
 		{
 			parameter = new EventParameter_Vector4();
+		}
+		else if(type == typeof(Color))
+		{
+			parameter = new EventParameter_Color();
 		}
 		else if (type == typeof(UnityEngine.Object) ||
 			type.IsSubclassOf(typeof(UnityEngine.Object)))
