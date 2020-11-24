@@ -62,9 +62,12 @@ public class EventParameterBaseDrawer : PropertyDrawer
 					var argProp = property.FindPropertyRelative("value");
 					if (argProp != null)
 					{
-						if (type != null && (type == unityObjType || type.IsSubclassOf(unityObjType)))
+						if (type != null && type.IsAssignableFrom(typeof(UnityEngine.Object)))
 						{
-							EditorGUI.ObjectField(position, argProp, type, new GUIContent(displayName));
+							bool allowSceneObjects = argProp.serializedObject == typeof(MonoBehaviour);
+							UnityEngine.Object obj = EditorGUI.ObjectField(position, displayName, argProp.objectReferenceValue, type, allowSceneObjects);
+							if (argProp.objectReferenceValue != obj)
+								argProp.objectReferenceValue = obj;
 						}
 						else
 						{
@@ -94,13 +97,16 @@ public class EventParameterBaseDrawer : PropertyDrawer
 		if (property.isExpanded)
 		{
 			var requirementProp = property.FindPropertyRelative("requirement");
-			height += EditorGUIUtility.singleLineHeight;
-
-			if (requirementProp.enumValueIndex != (int)EventParameterBase.Requirement.Any)
+			if (requirementProp != null)
 			{
-				var argProp = property.FindPropertyRelative("value");
-				if (argProp != null)
-					height += EditorGUI.GetPropertyHeight(argProp, argProp.isExpanded);
+				height += EditorGUIUtility.singleLineHeight;
+
+				if (requirementProp.enumValueIndex != (int)EventParameterBase.Requirement.Any)
+				{
+					var argProp = property.FindPropertyRelative("value");
+					if (argProp != null)
+						height += EditorGUI.GetPropertyHeight(argProp, argProp.isExpanded);
+				}
 			}
 		}
 

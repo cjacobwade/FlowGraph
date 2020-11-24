@@ -32,12 +32,12 @@ public class ArgumentBaseDrawer : PropertyDrawer
 				if (type != null && type.IsArray)
 					elementType = type.GetElementType();
 
-				if (type != null && (type == unityObjType || type.IsSubclassOf(unityObjType)))
+				if (type != null && type.IsAssignableFrom(typeof(UnityEngine.Object)))
 				{
 					EditorGUI.ObjectField(position, argProp, type, easyTypeLabel);
 				}
-				else if(type != null && elementType != null &&
-					(type == unityObjType || elementType.IsSubclassOf(unityObjType)))
+				else if(type != null && elementType != null && 
+					elementType.IsAssignableFrom(typeof(UnityEngine.Object)))
 				{
 					EditorGUI.PropertyField(position, argProp, easyTypeLabel, false);
 					position.y += EditorGUI.GetPropertyHeight(argProp, false);
