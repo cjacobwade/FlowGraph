@@ -62,3 +62,12 @@ public class Argument_Object : Argument<UnityEngine.Object> { }
 
 [Serializable]
 public class Argument_ObjectArray : Argument<UnityEngine.Object[]> { }
+
+[Serializable]
+public class Argument_GlobalEventDefintion : Argument<GlobalEventDefinition>
+{ 
+	public Argument_GlobalEventDefintion()
+	{
+		Value = new GlobalEventDefinition();
+	}
+}

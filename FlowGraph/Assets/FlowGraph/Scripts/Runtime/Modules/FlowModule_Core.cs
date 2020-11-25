@@ -14,6 +14,11 @@ public class FlowModule_Core : FlowModule
 		// How to get reference to running flow instance from effect?
 	}
 
+	public void WaitForGlobalEvent(FlowEffectInstance effect, GlobalEventDefinition eventDefinition)
+	{
+		new FlowCallback_GlobalEvent(effect, eventDefinition);
+	}
+
 	public void SpawnPrefab(FlowEffectInstance effect, GameObject prefab)
 	{
 		Instantiate(prefab);

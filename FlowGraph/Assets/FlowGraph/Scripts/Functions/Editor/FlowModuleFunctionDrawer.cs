@@ -11,10 +11,7 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 {
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
-		Profiler.BeginSample("Module Function Drawer");
-
 		EditorGUI.BeginProperty(position, label, property);
-
 		position.height = EditorGUIUtility.singleLineHeight;
 
 		using (var check = new EditorGUI.ChangeCheckScope())
@@ -48,16 +45,17 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 			{
 				var contextProp = property.FindPropertyRelative("context");
 
-				var moduleUOD = FlowTypeCache.FlowModuleSettings.GetDefaultUOD(moduleProp.stringValue);
-				if (moduleUOD != null)
+				if (FlowTypeCache.FlowModuleSettings != null)
 				{
-					if (contextProp.objectReferenceValue != moduleUOD)
+					var moduleUOD = FlowTypeCache.FlowModuleSettings.GetDefaultUOD(moduleProp.stringValue);
+					if (moduleUOD != null)
 					{
-						contextProp.objectReferenceValue = moduleUOD;
-						GUI.changed = true;
+						if (contextProp.objectReferenceValue != moduleUOD)
+						{
+							contextProp.objectReferenceValue = moduleUOD;
+							GUI.changed = true;
+						}
 					}
-
-					GUI.enabled = false;
 				}
 
 				EditorGUI.ObjectField(position, contextProp, typeof(UniqueObjectData));
@@ -118,11 +116,12 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 						// Retain existing arguments if new arguments are same type
 						for (int i = 0; i < arguments.Count && i < existingArgs.Count; i++)
 						{
-							if (existingArgs[i].Value != null && 
+							if (existingArgs[i] != null && arguments[i] != null &&
+								existingArgs[i].Value != null &&
 								existingArgs[i].type == arguments[i].type)
 							{
 								arguments[i].Value = existingArgs[i].Value;
-							}	
+							}
 						}
 
 						EditorUtils.SetTargetObjectOfProperty(argsProp, arguments);
@@ -147,16 +146,14 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 						for (int i = 0; i < argsProp.arraySize; i++)
 						{
 							var elementProp = argsProp.GetArrayElementAtIndex(i);
-
 							EditorGUI.PropertyField(position, elementProp, true);
-
 							position.y += EditorGUI.GetPropertyHeight(elementProp, true);
 						}
 
 						EditorGUI.indentLevel--;
 					}
 
-					if(GUI.changed)
+					if (GUI.changed)
 						property.serializedObject.ApplyModifiedProperties();
 				}
 			}
@@ -164,8 +161,6 @@ public class FlowModuleFunctionDrawer : PropertyDrawer
 			EditorGUI.indentLevel--;
 
 			EditorGUI.EndProperty();
-
-			Profiler.EndSample(); // Module Function Drawer
 		}
 	}
 

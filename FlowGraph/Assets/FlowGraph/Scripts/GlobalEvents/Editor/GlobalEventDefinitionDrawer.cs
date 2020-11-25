@@ -12,8 +12,6 @@ public class GlobalEventDefinitionDrawer : PropertyDrawer
 	{
 		EditorGUI.BeginProperty(position, label, property);
 
-		property.serializedObject.Update();
-
 		using (var check = new EditorGUI.ChangeCheckScope())
 		{
 			position.height = EditorGUIUtility.singleLineHeight;
@@ -33,116 +31,120 @@ public class GlobalEventDefinitionDrawer : PropertyDrawer
 			var typeProp = property.FindPropertyRelative("typeName");
 			var eventProp = property.FindPropertyRelative("eventName");
 
-			int typeIndex = -1;
-			int eventIndex = -1;
-
-			bool changedEvent = false;
-
-			using (var check = new EditorGUI.ChangeCheckScope())
+			if (typeProp != null && eventProp != null)
 			{
-				List<string> typeNames = new List<string>();
-				foreach (var info in globalEventInfos)
-					typeNames.Add(info.type.Name);
+				int typeIndex = -1;
+				int eventIndex = -1;
 
-				typeIndex = Mathf.Max(0, typeNames.IndexOf(typeProp.stringValue));
-				typeIndex = EditorGUI.Popup(position, typeProp.displayName, typeIndex, typeNames.ToArray());
-
-				string typeName = typeNames[typeIndex];
-				if (typeProp.stringValue != typeName)
-				{
-					typeProp.stringValue = typeName;
-					changedEvent = true;
-				}
-
-				position.y += EditorGUIUtility.singleLineHeight;
-
-				List<string> eventNames = new List<string>();
-				foreach (var eventInfo in globalEventInfos[typeIndex].eventInfos)
-					eventNames.Add(eventInfo.Name);
-				
-				eventIndex = Mathf.Max(0, eventNames.IndexOf(eventProp.stringValue));
-				eventIndex = EditorGUI.Popup(position, eventProp.displayName, eventIndex, eventNames.ToArray());
-
-				string eventName = eventNames[eventIndex];
-				if (eventProp.stringValue != eventName)
-				{
-					eventProp.stringValue = eventName;
-					changedEvent = true;
-				}
-
-				if (GUI.changed)
-					property.serializedObject.ApplyModifiedProperties();
-			}
-
-			// Args
-
-			var parametersProp = property.FindPropertyRelative("parameters");
-
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				Type classType = globalEventInfos[typeIndex].type;
-				EventInfo eventInfo = globalEventInfos[typeIndex].eventInfos[eventIndex];
-
-				ParameterInfo[] parameterInfos = eventInfo.EventHandlerType
-					.GetMethod("Invoke")
-					.GetParameters();
-
-				// Changed module or function so lets refresh arguments
-				if (changedEvent || parameterInfos.Length != parametersProp.arraySize)
-				{
-					var existingParams = (List<EventParameterBase>)EditorUtils.GetTargetObjectOfProperty(parametersProp);
-
-					List<Type> types = new List<Type>();
-					List<EventParameterBase> parameters = new List<EventParameterBase>();
-
-					for (int i = 0; i < parameterInfos.Length; i++)
-					{
-						var parameter = GlobalEventParameterHelper.GetParameterOfType(parameterInfos[i].ParameterType);
-						parameter.name = parameterInfos[i].Name;
-						types.Add(parameterInfos[i].ParameterType);
-						parameters.Add(parameter);
-					}
-
-					// Retain existing arguments if new arguments are same type
-					for (int i = 0; i < parameters.Count && i < existingParams.Count; i++)
-					{
-						if (existingParams[i].Value != null &&
-							existingParams[i].type == parameters[i].type)
-						{
-							parameters[i].Value = existingParams[i].Value;
-						}
-					}
-
-					EditorUtils.SetTargetObjectOfProperty(parametersProp, parameters);
-				}
-			}
-
-			parametersProp = property.FindPropertyRelative("parameters");
-			if (parametersProp.arraySize > 0)
-			{
-				position.y += EditorGUIUtility.singleLineHeight;
+				bool changedEvent = false;
 
 				using (var check = new EditorGUI.ChangeCheckScope())
 				{
-					EditorGUI.PropertyField(position, parametersProp, false);
+					List<string> typeNames = new List<string>();
+					foreach (var info in globalEventInfos)
+						typeNames.Add(info.type.Name);
 
-					if (parametersProp.isExpanded)
+					typeIndex = Mathf.Max(0, typeNames.IndexOf(typeProp.stringValue));
+					typeIndex = EditorGUI.Popup(position, typeProp.displayName, typeIndex, typeNames.ToArray());
+
+					string typeName = typeNames[typeIndex];
+					if (typeProp.stringValue != typeName)
 					{
-						position.y += EditorGUIUtility.singleLineHeight;
-						EditorGUI.indentLevel++;
+						typeProp.stringValue = typeName;
+						changedEvent = true;
+					}
 
-						for (int i = 0; i < parametersProp.arraySize; i++)
-						{
-							var elementProp = parametersProp.GetArrayElementAtIndex(i);
-							EditorGUI.PropertyField(position, elementProp, true);
-							position.y += EditorGUI.GetPropertyHeight(elementProp, true);
-						}
+					position.y += EditorGUIUtility.singleLineHeight;
 
-						EditorGUI.indentLevel--;
+					List<string> eventNames = new List<string>();
+					foreach (var eventInfo in globalEventInfos[typeIndex].eventInfos)
+						eventNames.Add(eventInfo.Name);
+
+					eventIndex = Mathf.Max(0, eventNames.IndexOf(eventProp.stringValue));
+					eventIndex = EditorGUI.Popup(position, eventProp.displayName, eventIndex, eventNames.ToArray());
+
+					string eventName = eventNames[eventIndex];
+					if (eventProp.stringValue != eventName)
+					{
+						eventProp.stringValue = eventName;
+						changedEvent = true;
 					}
 
 					if (GUI.changed)
 						property.serializedObject.ApplyModifiedProperties();
+				}
+
+				// Args
+
+				var parametersProp = property.FindPropertyRelative("parameters");
+
+				using (var check = new EditorGUI.ChangeCheckScope())
+				{
+					Type classType = globalEventInfos[typeIndex].type;
+					EventInfo eventInfo = globalEventInfos[typeIndex].eventInfos[eventIndex];
+
+					ParameterInfo[] parameterInfos = eventInfo.EventHandlerType
+						.GetMethod("Invoke")
+						.GetParameters();
+
+					// Changed module or function so lets refresh arguments
+					if (changedEvent || parameterInfos.Length != parametersProp.arraySize)
+					{
+						var existingParams = (List<EventParameterBase>)EditorUtils.GetTargetObjectOfProperty(parametersProp);
+
+						List<Type> types = new List<Type>();
+						List<EventParameterBase> parameters = new List<EventParameterBase>();
+
+						for (int i = 0; i < parameterInfos.Length; i++)
+						{
+							var parameter = GlobalEventParameterHelper.GetParameterOfType(parameterInfos[i].ParameterType);
+							parameter.name = parameterInfos[i].Name;
+							types.Add(parameterInfos[i].ParameterType);
+							parameters.Add(parameter);
+						}
+
+						// Retain existing arguments if new arguments are same type
+						for (int i = 0; i < parameters.Count && i < existingParams.Count; i++)
+						{
+							if (parameters[i] != null && existingParams[i] != null &&
+								existingParams[i].Value != null &&
+								existingParams[i].type == parameters[i].type)
+							{
+								parameters[i].Value = existingParams[i].Value;
+							}
+						}
+
+						EditorUtils.SetTargetObjectOfProperty(parametersProp, parameters);
+					}
+				}
+
+				parametersProp = property.FindPropertyRelative("parameters");
+				if (parametersProp.arraySize > 0)
+				{
+					position.y += EditorGUIUtility.singleLineHeight;
+
+					using (var check = new EditorGUI.ChangeCheckScope())
+					{
+						EditorGUI.PropertyField(position, parametersProp, false);
+
+						if (parametersProp.isExpanded)
+						{
+							position.y += EditorGUIUtility.singleLineHeight;
+							EditorGUI.indentLevel++;
+
+							for (int i = 0; i < parametersProp.arraySize; i++)
+							{
+								var elementProp = parametersProp.GetArrayElementAtIndex(i);
+								EditorGUI.PropertyField(position, elementProp, true);
+								position.y += EditorGUI.GetPropertyHeight(elementProp, true);
+							}
+
+							EditorGUI.indentLevel--;
+						}
+
+						if (GUI.changed)
+							property.serializedObject.ApplyModifiedProperties();
+					}
 				}
 			}
 

@@ -9,10 +9,12 @@ using UnityEngine.Profiling;
 [CustomPropertyDrawer(typeof(ArgumentBase), true)]
 public class ArgumentBaseDrawer : PropertyDrawer
 {
-	private readonly Type unityObjType = typeof(UnityEngine.Object);
-
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
+		EditorGUI.BeginProperty(position, label, property);
+
+		position.height = EditorGUIUtility.singleLineHeight;
+
 		using (var check = new EditorGUI.ChangeCheckScope())
 		{
 			var argProp = property.FindPropertyRelative("value");
@@ -81,6 +83,8 @@ public class ArgumentBaseDrawer : PropertyDrawer
 				property.serializedObject.ApplyModifiedProperties();
 			}
 		}
+
+		EditorGUI.EndProperty();
 	}
 
 	public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

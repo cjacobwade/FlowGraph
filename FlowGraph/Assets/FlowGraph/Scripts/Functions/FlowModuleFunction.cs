@@ -71,7 +71,7 @@ public class FlowModuleFunction
 			}
 			else
 			{
-				Debug.LogErrorFormat("Module function execute failed. No uniqueObject found matching {0}", uniqueObject.name);
+				Debug.LogErrorFormat("Module function execute failed. No uniqueObject found matching {0}", context);
 			}
 		}
 		else

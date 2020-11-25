@@ -47,6 +47,10 @@ public static class ArgumentHelper
 		{
 			argument = new Argument_Object();
 		}
+		else if (type == typeof(GlobalEventDefinition))
+		{
+			argument = new Argument_GlobalEventDefintion();
+		}
 		else if(type == typeof(UnityEngine.Object[]) ||
 			type.GetElementType().IsSubclassOf(typeof(UnityEngine.Object)))
 		{
