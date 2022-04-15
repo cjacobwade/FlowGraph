@@ -15,45 +15,21 @@ MonoBehaviour:
   moduleDefaults:
   - moduleName: FlowModule_Core
     forceUOD: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
-  - moduleName: FlowModule_Audio
-    forceUOD: {fileID: 11400000, guid: 8403f52990b57a64c9f8ac3f07e72f10, type: 2}
   - moduleName: FlowModule_GoalManager
     forceUOD: {fileID: 11400000, guid: af23b6fb1549d9949bb5e53fd39efd01, type: 2}
-  - moduleName: FlowModule_BigHops
-    forceUOD: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
-  - moduleName: FlowModule_Player
-    forceUOD: {fileID: 11400000, guid: 30160ad778ae52a4f9a0484c233bbfd2, type: 2}
-  - moduleName: FlowModule_UI
-    forceUOD: {fileID: 11400000, guid: 336854c82b035b1438bf3e14dcd58aff, type: 2}
-  - moduleName: FlowModule_VoidDream
-    forceUOD: {fileID: 11400000, guid: f99748524423d644b934ef3c8da63673, type: 2}
   dragAndDropSettings:
-  - typeObject: {fileID: 1827226128182048838, guid: 0617b4da26ea8ca45a4d7457b4abe2fd,
-      type: 3}
-    module: FlowModule_Animation
-    function: PlayAnimation
-  - typeObject: {fileID: 11400000, guid: 244a4dd522a49584cbc9039070e8367c, type: 2}
-    module: FlowModule_Camera
-    function: AddSettingsRequest
-  - typeObject: {fileID: 11400000, guid: fbde735146085014ba015ded79f01650, type: 2}
+  - typeObject: {fileID: 11400000, guid: 9df9b153f94f4c547905f20824df7f49, type: 2}
     module: FlowModule_GoalManager
     function: CompleteGoal
-  - typeObject: {fileID: 11400000, guid: 30160ad778ae52a4f9a0484c233bbfd2, type: 2}
+  - typeObject: {fileID: 11400000, guid: 8403f52990b57a64c9f8ac3f07e72f10, type: 2}
     module: FlowModule_Core
     function: SetActive
-  - typeObject: {fileID: 3335000413201092310, guid: 5418bc6cc8e382a4c825d5f88d301d7b,
-      type: 3}
+  - typeObject: {fileID: 6006090201199177235, guid: f80a7a3927d9f1748a877ef2fd24c955, type: 3}
     module: FlowModule_Core
     function: SpawnPrefab
-  - typeObject: {fileID: 11400000, guid: 688ff3671d33d704598a76cc4ac053a3, type: 2}
+  - typeObject: {fileID: 11400000, guid: 407a01e356a163b45b643dbf3160521a, type: 2}
     module: FlowModule_Core
     function: PlayFlow
-  - typeObject: {fileID: 11400000, guid: befc8f8bd51021b4f811d1dbd31212a1, type: 2}
-    module: FlowModule_SceneVisuals
-    function: AddSettingsRequest
-  - typeObject: {fileID: 11400000, guid: 3f7885f95c84c994c9fe2638c303aea3, type: 2}
-    module: FlowModule_Timeline
+  - typeObject: {fileID: 7400000, guid: d0fb5713cd66efd44a1ca290e8bf8066, type: 2}
+    module: FlowModule_Animation
     function: Play
-  - typeObject: {fileID: 11400000, guid: 6de559c1f2c25cd4d97cad4c4ec8077f, type: 2}
-    module: FlowModule_Player
-    function: UnlockGadget

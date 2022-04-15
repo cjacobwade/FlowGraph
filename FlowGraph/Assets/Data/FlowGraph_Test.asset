@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9008390113e071f4f9a034c20a60dbc8, type: 3}
   m_Name: FlowGraph_Test
   m_EditorClassIdentifier: 
-  startNodeID: 0
+  startNodeID: 1
   nodes:
   - id: 0
-    name: Start
-    position: {x: 100, y: 100}
+    name: ToggleSphere
+    position: {x: 114, y: 53}
     effects:
     - nextNodeID: -1
       sequenceMode: 2
@@ -31,22 +31,230 @@ MonoBehaviour:
           enumValue: 0
           value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
         module: FlowModule_Core
-        function: PlayFlow
+        function: SetActive
         arguments:
         - id: 0
+        - id: 1
+    - nextNodeID: -1
+      sequenceMode: 0
+      wait: 3
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+        module: FlowModule_Core
+        function: SetActive
+        arguments:
+        - id: 2
+        - id: 3
+    - nextNodeID: 0
+      sequenceMode: 0
+      wait: 3
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+        module: FlowModule_Core
+        function: GOTO
+        arguments: []
+  - id: 1
+    name: Node
+    position: {x: 264, y: -147.52}
+    effects:
+    - nextNodeID: 0
+      sequenceMode: 2
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+        module: FlowModule_Core
+        function: GOTO
+        arguments: []
+    - nextNodeID: 2
+      sequenceMode: 0
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+        module: FlowModule_Core
+        function: GOTO
+        arguments: []
+    - nextNodeID: 3
+      sequenceMode: 0
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+        module: FlowModule_Core
+        function: GOTO
+        arguments: []
+  - id: 2
+    name: CubeAnimation
+    position: {x: 564, y: 53}
+    effects:
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 2abf106ff54bc52409e6db835533d5b9, type: 2}
+        module: FlowModule_Animation
+        function: PlayAnimation
+        arguments:
+        - id: 4
+    - nextNodeID: 2
+      sequenceMode: 0
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 2abf106ff54bc52409e6db835533d5b9, type: 2}
+        module: FlowModule_Animation
+        function: PlayAnimationBackwards
+        arguments:
+        - id: 5
+  - id: 3
+    name: CustomModule
+    position: {x: 751, y: -108}
+    effects:
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: c72c9d28768fa224d867d8af806d38df, type: 2}
+        module: FlowModule_Example
+        function: SimpleExample
+        arguments:
+        - id: 6
+    - nextNodeID: 3
+      sequenceMode: 0
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: c72c9d28768fa224d867d8af806d38df, type: 2}
+        module: FlowModule_Example
+        function: CallbackEnterExample
+        arguments: []
   templateArguments: []
   argumentTypeNames: []
   references:
     version: 1
     00000000:
-      type: {class: Argument_FlowTemplate, ns: , asm: Assembly-CSharp-firstpass}
+      type: {class: Argument_Object, ns: , asm: Assembly-CSharp-firstpass}
       data:
-        name: template
-        type: FlowTemplate, Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral,
+        name: uod
+        type: UniqueObjectData, Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral,
           PublicKeyToken=null
         source: 0
         templateIndex: 0
         enumValue: 0
-        value:
-          flowGraph: {fileID: 0}
-          arguments: []
+        value: {fileID: 11400000, guid: 5cc9deaa58844dd4697298e1b45fd8e8, type: 2}
+    00000001:
+      type: {class: Argument_Bool, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: setActive
+        type: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value: 0
+    00000002:
+      type: {class: Argument_Object, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: uod
+        type: UniqueObjectData, Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value: {fileID: 11400000, guid: 5cc9deaa58844dd4697298e1b45fd8e8, type: 2}
+    00000003:
+      type: {class: Argument_Bool, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: setActive
+        type: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value: 1
+    00000004:
+      type: {class: Argument_Object, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: clip
+        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value: {fileID: 7400000, guid: d0fb5713cd66efd44a1ca290e8bf8066, type: 2}
+    00000005:
+      type: {class: Argument_Object, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: clip
+        type: UnityEngine.AnimationClip, UnityEngine.AnimationModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value: {fileID: 7400000, guid: d0fb5713cd66efd44a1ca290e8bf8066, type: 2}
+    00000006:
+      type: {class: Argument_String, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: message
+        type: System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value: Help
