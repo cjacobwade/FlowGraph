@@ -66,16 +66,14 @@ public class TimeManager : Singleton<TimeManager>
 	{
 		base.Awake();
 
-		Application.targetFrameRate = 60;
-		
+		int refreshRate = Screen.currentResolution.refreshRate;
+
+		Application.targetFrameRate = refreshRate;
+
+		Time.fixedDeltaTime = 1f / (float)refreshRate;		
 		Time.timeScale = 1f;
-		Time.fixedDeltaTime = defaultFixedDeltaTime;
 
 		TimeScaleLens.OnValueChanged += TimeScaleLens_OnValueChanged;
-		
-		activeTimeInvokes.Clear();
-		activeUnscaledTimeInvokes.Clear();
-		activeFrameInvokes.Clear();
 
 		for (int i = 0; i < delayedInvokePoolSize; i++)
 		{
@@ -211,22 +209,45 @@ public class TimeManager : Singleton<TimeManager>
 
 	public static void Invoke(System.Action action, float time, bool timeScaleIndependent = false)
 	{
-		if (timeScaleIndependent)
-			AddInvokeWithUnscaledTime(action.Method, action.Target, InvokeAsync(action), Time.unscaledTime + time);
+		if (!Application.isPlaying)
+			return;
+
+		if (time > 0f)
+		{
+			if (timeScaleIndependent)
+				AddInvokeWithUnscaledTime(action.Method, action.Target, InvokeAsync(action), Time.unscaledTime + time);
+			else
+				AddInvokeWithTime(action.Method, action.Target, InvokeAsync(action), Time.time + time);
+		}
 		else
-			AddInvokeWithTime(action.Method, action.Target, InvokeAsync(action), Time.time + time);
+		{
+			action.Invoke();
+		}
 	}
 
 	public static void Invoke<T>(System.Action<T> action, T argument, float time, bool timeScaleIndependent = false)
 	{
-		if (timeScaleIndependent)
-			AddInvokeWithUnscaledTime(action.Method, action.Target, InvokeAsync<T>(action, argument), Time.unscaledTime + time);
+		if (!Application.isPlaying)
+			return;
+
+		if (time > 0f)
+		{
+			if (timeScaleIndependent)
+				AddInvokeWithUnscaledTime(action.Method, action.Target, InvokeAsync<T>(action, argument), Time.unscaledTime + time);
+			else
+				AddInvokeWithTime(action.Method, action.Target, InvokeAsync<T>(action, argument), Time.time + time);
+		}
 		else
-			AddInvokeWithTime(action.Method, action.Target, InvokeAsync<T>(action, argument), Time.time + time);
+		{
+			action.Invoke(argument);
+		}
 	}
 
 	public static void Invoke<T, K>(System.Action<T, K> action, T argument, K argument2, float time, bool timeScaleIndependent = false)
 	{
+		if (!Application.isPlaying)
+			return;
+
 		if (time > 0f)
 		{
 			if (timeScaleIndependent)
@@ -318,17 +339,47 @@ public class TimeManager : Singleton<TimeManager>
 
 	public static void Invoke(System.Action action, int frames)
 	{
-		AddInvokeWithFrame(action.Method, action.Target, InvokeAsync(action), Time.frameCount + frames);
+		if (!Application.isPlaying)
+			return;
+
+		if (frames == 0)
+		{
+			action.Invoke();
+		}
+		else
+		{
+			AddInvokeWithFrame(action.Method, action.Target, InvokeAsync(action), Time.frameCount + frames);
+		}
 	}
 
 	public static void Invoke<T>(System.Action<T> action, T argument, int frames)
 	{
-		AddInvokeWithFrame(action.Method, action.Target, InvokeAsync<T>(action, argument), Time.frameCount + frames);
+		if (!Application.isPlaying)
+			return;
+
+		if (frames == 0)
+		{
+			action.Invoke(argument);
+		}
+		else
+		{
+			AddInvokeWithFrame(action.Method, action.Target, InvokeAsync<T>(action, argument), Time.frameCount + frames);
+		}
 	}
 
 	public static void Invoke<T, K>(System.Action<T, K> action, T argument, K argument2, int frames)
 	{
-		AddInvokeWithFrame(action.Method, action.Target, InvokeAsync<T, K>(action, argument, argument2), Time.frameCount + frames);
+		if (!Application.isPlaying)
+			return;
+
+		if (frames == 0)
+		{
+			action.Invoke(argument, argument2);
+		}
+		else
+		{
+			AddInvokeWithFrame(action.Method, action.Target, InvokeAsync<T, K>(action, argument, argument2), Time.frameCount + frames);
+		}
 	}
 
 	static void AddInvokeWithFrame(MethodInfo methodInfo, object target, IEnumerator enumerator, int endFrame)

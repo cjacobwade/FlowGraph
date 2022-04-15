@@ -6,244 +6,306 @@ namespace Luckshot.Paths
 	[CustomEditor(typeof(SplinePath), true)]
 	public class SplinePathEditor : Editor
 	{
-		protected const int stepsPerCurve = 10;
-		protected const float directionScale = 0.5f;
-		protected const float handleSize = 0.04f;
+		protected const float handleSize = 0.07f;
 		protected const float pickSize = 0.06f;
 
-		protected static Color[] modeColors = { Color.white, Color.yellow, Color.cyan };
+		protected SplinePath Spline => target as SplinePath;
 
-		protected SplinePath spline = null;
-		protected Transform handleTransform = null;
 		protected Quaternion handleRotation = Quaternion.identity;
 		protected Vector3 handleScale = Vector3.one;
-		protected int selectedIndex = -1;
+		protected static int selectedIndex = -1;
 
 		private Tool currentTool = Tool.None;
 		private PivotRotation currentPivotRotation = PivotRotation.Local;
 
+		private static bool debugMode = false;
+
 		private void OnEnable()
 		{
+			selectedIndex = -1;
+
 			Undo.undoRedoPerformed += UndoRedoPerformed;
 
-			spline = target as SplinePath;
-
-			if (spline == null)
-				return;
-
-			if(!Application.IsPlaying(spline))
-				spline.OnPathChanged(spline);
+			if(!Application.IsPlaying(Spline))
+				Spline.NotifyChanged();
 		}
 
 		private void OnDisable()
 		{
 			Undo.undoRedoPerformed -= UndoRedoPerformed;
-			Tools.hidden = false;
 		}
 
 		private void UndoRedoPerformed()
 		{
-			spline = target as SplinePath;
+			ResetTransformGizmo();
 
-			ResetHandleSettings();
-
-			if (spline != null)
-				spline.OnPathChanged(spline);
+			if (Spline != null)
+				Spline.NotifyChanged();
 			else
 				Undo.undoRedoPerformed -= UndoRedoPerformed;
 		}
 
 		public override void OnInspectorGUI()
 		{
+			bool prevLoop = Spline.Loop;
+
 			base.OnInspectorGUI();
 
-			spline = target as SplinePath;
-			if (spline == null)
-				return;
+			if (GUI.changed)
+				Spline.NotifyChanged();
 
-			if (selectedIndex >= 0 && selectedIndex < spline.ControlPointCount)
+			if (Spline.ControlCount < 3)
 			{
-				DrawSelectedPointInspector();
-				Tools.hidden = true;
+				if(Spline.Loop)
+					Spline.SetLoop(false);
+
+				EditorGUILayout.LabelField("Need at least 3 controls to loop", EditorStyles.helpBox);
+
+				GUI.enabled = false;
+				EditorGUILayout.Toggle("Loop", Spline.Loop);
+				GUI.enabled = true;
 			}
 			else
 			{
-				Tools.hidden = false;
+				EditorGUI.BeginChangeCheck();
+
+				bool loop = EditorGUILayout.Toggle("Loop", Spline.Loop);
+				if (EditorGUI.EndChangeCheck())
+				{
+					Spline.SetLoop(loop);
+
+					if (loop)
+					{
+						if (selectedIndex == 0)
+						{
+							Vector3 start = Spline.GetControlPoint(0);
+							Spline.Points[Spline.PointCount - 1] = Spline.transform.InverseTransformPoint(start);
+							Spline.EnforceAlignment(1);
+						}
+						else
+						{
+							Vector3 end = Spline.GetControlPoint(Spline.PointCount - 1);
+							Spline.Points[0] = Spline.transform.InverseTransformPoint(end);
+							Spline.EnforceAlignment(Spline.PointCount - 2);
+						}
+					}
+				}
 			}
+
+			if (selectedIndex >= 0 && selectedIndex < Spline.PointCount)
+				DrawSelectedPointInspector();
+
+			debugMode = EditorGUILayout.Toggle("Debug Mode", debugMode);
 
 			if (GUILayout.Button("Add Curve"))
 			{
-				Undo.RecordObject(spline, "Add Curve");
-				spline.AddCurve();
-				EditorUtility.SetDirty(spline);
+				Undo.RecordObject(Spline, "Add Curve");
+				EditorUtility.SetDirty(Spline); 
+				
+				Spline.AddControl();
 			}
 
-			if (spline.CurveCount > 1 && GUILayout.Button("Remove Curve"))
+			if (Spline.CurveCount > 1 && GUILayout.Button("Remove Curve"))
 			{
-				Undo.RecordObject(spline, "Remove Curve");
-				spline.RemoveCurve();
-				EditorUtility.SetDirty(spline);
+				Undo.RecordObject(Spline, "Remove Curve");
+				EditorUtility.SetDirty(Spline);
+
+				Spline.RemoveControl();
 			}
 
-			if (GUI.changed)
-				spline.OnPathChanged(spline);
+			bool anyModifiedScalars = false;
+			for(int i = 0; i < Spline.Scalars.Count; i++)
+            {
+				if (Spline.Scalars[i] != Vector2.one)
+				{
+					anyModifiedScalars = true;
+					break;
+				}
+            }
+
+			if(anyModifiedScalars && GUILayout.Button("Reset Scalars"))
+            {
+				Undo.RecordObject(Spline, "Reset Scalars");
+				EditorUtility.SetDirty(Spline);
+
+				for (int i = 0; i < Spline.Scalars.Count; i++)
+					Spline.Scalars[i] = Vector2.one;
+
+				Spline.NotifyChanged();
+            }
 		}
 
 		protected virtual void DrawSelectedPointInspector()
 		{
 			GUILayout.Label("Selected Point", EditorStyles.boldLabel);
 			EditorGUI.BeginChangeCheck();
-			Vector3 point = EditorGUILayout.Vector3Field("Position", spline.GetControlPoint(selectedIndex));
+			Vector3 point = EditorGUILayout.Vector3Field("Position", Spline.GetControlPoint(selectedIndex));
 
 			if (EditorGUI.EndChangeCheck())
 			{
-				Undo.RecordObject(spline, "Move Point");
-				EditorUtility.SetDirty(spline);
-				spline.SetControlPoint(selectedIndex, point, true);
-			}
-
-			EditorGUI.BeginChangeCheck();
-			BezierControlPointMode mode = (BezierControlPointMode)EditorGUILayout.EnumPopup("Mode", spline.GetControlPointMode(selectedIndex));
-
-			if (EditorGUI.EndChangeCheck())
-			{
-				Undo.RecordObject(spline, "Change Point Mode");
-				spline.SetControlPointMode(selectedIndex, mode);
-				EditorUtility.SetDirty(spline);
+				Undo.RecordObject(Spline, "Move Point");
+				EditorUtility.SetDirty(Spline);
+				Spline.SetControlPoint(selectedIndex, point, true);
 			}
 
 			// Draw Node Data if ADV SPLINE
 			// Would be in AdvSplineInspector, except AdvSpline is generic meaning
 			// we can't use the CustomEditor attribute and force child types to use its inspector
 			// which means either this is here or every AdvSpline child needs an associated TypeInspector script
-			if (selectedIndex % 3 == 0)
+			int advNodeIndex = selectedIndex / 3;
+			SerializedObject so = serializedObject;
+			SerializedProperty nodeDataProp = so.FindProperty(string.Format("{0}.Array.data[{1}]", "_nodeData", advNodeIndex));
+			if (nodeDataProp != null)
 			{
-				int advNodeIndex = selectedIndex / 3;
-				SerializedObject so = serializedObject;
-				SerializedProperty nodeDataProp = so.FindProperty(string.Format("{0}.Array.data[{1}]", "_nodeData", advNodeIndex));
-				if (nodeDataProp != null)
-				{
-					EditorGUI.BeginChangeCheck();
+				EditorGUI.BeginChangeCheck();
 
-					EditorGUILayout.PropertyField(nodeDataProp, new GUIContent("Node Data"), true);
+				EditorGUILayout.PropertyField(nodeDataProp, new GUIContent("Node Data"), true);
 
-					if (EditorGUI.EndChangeCheck())
-						so.ApplyModifiedProperties();
-				}
+				if (EditorGUI.EndChangeCheck())
+					so.ApplyModifiedProperties();
 			}
 		}
 
 		protected virtual void OnSceneGUI()
 		{
-			spline = target as SplinePath;
-			handleTransform = spline.transform;
-
 			if (currentTool != Tools.current ||
 				currentPivotRotation != Tools.pivotRotation)
 			{ 
 				currentTool = Tools.current;
 				currentPivotRotation = Tools.pivotRotation;
 
-				ResetHandleSettings();
+				ResetTransformGizmo();
 			}
 
 			Vector3 p0 = ShowPoint(0);
-			for (int i = 1; i < spline.ControlPointCount; i += 3)
-			{
-				Vector3 p1 = ShowPoint(i);
-				Vector3 p2 = ShowPoint(i + 1);
-				Vector3 p3 = ShowPoint(i + 2);
 
-				Handles.color = Color.gray;
-				Handles.DrawLine(p0, p1);
-				Handles.DrawLine(p2, p3);
+			// Draw lines before controls
+			for (int i = 1; i < Spline.PointCount; i += 3)
+			{
+				Vector3 p1 = Spline.GetControlPoint(i);
+				Vector3 p2 = Spline.GetControlPoint(i + 1);
+				Vector3 p3 = Spline.GetControlPoint(i + 2);
+
+				Handles.color = Color.white.SetA(0.7f);
+				Handles.DrawDottedLine(p0, p1, 5f);
+				Handles.DrawDottedLine(p2, p3, 5f);
 
 				Handles.DrawBezier(p0, p3, p1, p2, Color.white, null, 2f);
 				p0 = p3;
 			}
 
-			Handles.color = Color.green.SetA(0.3f);
-			Handles.SphereHandleCap(0, spline.GetPoint(0f), Quaternion.identity, 0.1f, EventType.Repaint);
-
-			Handles.color = Color.red.SetA(0.3f);
-			Handles.SphereHandleCap(0, spline.GetPoint(1f), Quaternion.identity, 0.1f, EventType.Repaint);
-
-			if (spline.NormalType == NormalType.Perpendicular)
+			for (int i = 1; i < Spline.PointCount; i += 3)
 			{
-				for (int i = 0; i < spline.Normals.Length; i++)
+				Vector3 p1 = ShowPoint(i);
+				Vector3 p2 = ShowPoint(i + 1);
+				Vector3 p3 = ShowPoint(i + 2);
+
+				p0 = p3;
+			}
+
+			int numMidpoints = Spline.CurveCount;
+			float alphaPerControl = 1f / (float)numMidpoints;
+			float midpointAlpha = alphaPerControl/2f;
+
+			for (int i = 0; i < numMidpoints; i++)
+			{
+				Vector3 midpoint = Spline.GetPoint(midpointAlpha);
+				Vector3 toCamera = Camera.current.transform.position - midpoint;
+
+				float size = HandleUtility.GetHandleSize(midpoint);
+				Handles.color = Color.cyan;
+				Handles.DrawSolidDisc(midpoint, toCamera, size * handleSize);
+
+				if (Handles.Button(midpoint, Quaternion.LookRotation(toCamera), size * handleSize, size * pickSize, Handles.CircleHandleCap))
+				{
+					Undo.RecordObject(Spline, "Insert Curve");
+					EditorUtility.SetDirty(Spline);
+
+					Spline.InsertControl(i, midpoint);
+
+					selectedIndex = i * 3 + 3;
+
+					ResetTransformGizmo();
+					Repaint();
+					return;
+				}
+
+				midpointAlpha += alphaPerControl;
+			}
+
+			if(	Event.current.control && 
+				Event.current.keyCode == KeyCode.E &&
+				Event.current.type == EventType.KeyDown)
+			{
+				Undo.RecordObject(Spline, "Add Curve");
+				EditorUtility.SetDirty(Spline);
+
+				Spline.AddControl();
+				Event.current.Use();
+			}
+
+			if (debugMode)
+			{
+				// Draw forward / normal
+				for (int i = 0; i < Spline.PointCount; i++)
 				{
 					if (i % 3 == 0)
 					{
-						Vector3 pos = spline.GetControlPoint(i);
-						Vector3 normal = spline.GetControlNormal(i);
+						Vector3 pos = Spline.GetControlPoint(i);
+
+						float alpha = i / (float)(Spline.PointCount - 1);
+						Vector3 direction = Spline.GetDirection(alpha);
+
+						int endpointIndex = i / 3;
+						Vector3 normal = Spline.GetNormal(alpha);
 
 						Handles.color = Color.red;
-						Handles.DrawLine(pos, pos + normal * 0.8f);
+						Handles.DrawLine(pos, pos + normal * 0.5f);
+
+						Handles.color = Color.blue;
+						Handles.DrawLine(pos, pos + direction * 0.5f);
 					}
 				}
-			}
 
-			int numIterations = 10 * spline.ControlPointCount;
-			for (int i = 1; i < numIterations; i++)
-			{
-				float alpha = i / (float)numIterations;
+				// Draw many normals
+				int numIterations = 10 * Spline.PointCount;
+				for (int i = 1; i < numIterations; i++)
+				{
+					float alpha = i / (float)numIterations;
 
-				Vector3 pos = spline.GetPoint(alpha);
-				Vector3 normal = spline.GetNormal(alpha);
+					Vector3 pos = Spline.GetPoint(alpha);
+					Vector3 normal = Spline.GetNormal(alpha);
 
-				Handles.color = Color.green;
-				Handles.DrawLine(pos, pos + normal * 0.4f);
+					Handles.color = Color.white;
+					Handles.DrawLine(pos, pos + normal * 0.25f);
+				}
 			}
 		}
 
-		private void ResetHandleSettings()
+		private void ResetTransformGizmo()
 		{
 			if (selectedIndex == -1)
 				return;
 
 			handleScale = Vector3.one;
 
-			Vector3 point = spline.GetControlPoint(selectedIndex);
-			if (selectedIndex % 3 == 0)
-			{
-				Vector3 normal = spline.GetControlNormal(selectedIndex);
+			float alpha = selectedIndex / (float)(Spline.PointCount - 1);
+			Vector3 normal = Spline.GetNormal(alpha);
 
-				Vector3 guidePos = Vector3.zero;
-				if (selectedIndex == 0)
-					guidePos = spline.GetControlPoint(selectedIndex + 1);
-				else
-					guidePos = spline.GetControlPoint(selectedIndex - 1);
+			Vector3 point = Spline.GetControlPoint(selectedIndex);
 
-				Vector3 toGuide = (guidePos - point).normalized;
-
-				Vector3 right = Vector3.Cross(normal, toGuide).normalized;
-				normal = Vector3.Cross(-right, toGuide).normalized;
-
-				spline.Normals[selectedIndex] = spline.transform.InverseTransformDirection(normal);
-
-				handleRotation = Quaternion.LookRotation(toGuide, normal);
-
-				if (spline.GetControlPointMode(selectedIndex) == BezierControlPointMode.Free)
-				{
-					handleRotation = Quaternion.LookRotation(normal);
-					Quaternion offsetRot = Quaternion.AngleAxis(90f, handleRotation * Vector3.right);
-					handleRotation = offsetRot * handleRotation;
-				}
-			}
+			Vector3 guidePos = Vector3.zero;
+			if (selectedIndex == 0)
+				guidePos = Spline.GetControlPoint(selectedIndex + 1);
 			else
-			{
-				int nodeIndex = 0;
+				guidePos = Spline.GetControlPoint(selectedIndex - 1);
 
-				if((selectedIndex - 1) % 3 == 0) // after node
-					nodeIndex = selectedIndex - 1;
-				else
-					nodeIndex = selectedIndex + 1;
+			Vector3 toGuide = (guidePos - point).normalized;
 
-				Vector3 normal = spline.GetControlNormal(nodeIndex);
+			Vector3 right = Vector3.Cross(normal, toGuide).normalized;
+			normal = Vector3.Cross(-right, toGuide).normalized;
 
-				Vector3 cp = spline.GetControlPoint(nodeIndex);
-				handleRotation = Quaternion.LookRotation(point - cp, normal);
-			}
+			handleRotation = Quaternion.LookRotation(toGuide, normal);
 
 			if (Tools.pivotRotation == PivotRotation.Global)
 				handleRotation = Quaternion.identity;
@@ -251,119 +313,162 @@ namespace Luckshot.Paths
 
 		protected virtual Vector3 ShowPoint(int index)
 		{
-			Vector3 point = spline.GetControlPoint(index);
+			Vector3 point = Spline.GetControlPoint(index);
 			float size = HandleUtility.GetHandleSize(point);
 			if (index == 0)
-				size *= 2f;
+				size *= 1.7f;
 
-			Handles.color = modeColors[(int)spline.GetControlPointMode(index)];
-			if (Handles.Button(point, spline.transform.rotation, size * handleSize, size * pickSize, Handles.DotHandleCap))
+			if (index % 3 == 0)
 			{
-				selectedIndex = index;
+				if (Event.current.control)
+					Handles.color = Color.red;
+				else
+					Handles.color = Color.white;
+			}
 
-				ResetHandleSettings();
+			int controlIndex = (index + 1) / 3;
+			Vector3 toCamera = Camera.current.transform.position - point;
 
-				Repaint();
+			if (index % 3 == 0)
+			{
+				bool isLoop = index == 0 || index == Spline.PointCount - 1;
+				bool loopSelected = selectedIndex == 0 || selectedIndex == Spline.PointCount - 1;
+
+				if (Event.current.control || (selectedIndex != index && (!Spline.Loop || !loopSelected || !isLoop)))
+				{
+					Handles.DrawSolidDisc(point, toCamera, size * handleSize);
+
+					if (Handles.Button(point, Quaternion.LookRotation(toCamera), size * handleSize, size * pickSize, Handles.CircleHandleCap))
+					{
+						if (Event.current.control)
+						{
+							if (Spline.CurveCount > 1)
+							{
+								Undo.RecordObject(Spline, "Remove Curve");
+								EditorUtility.SetDirty(Spline);
+								Spline.RemoveControl(controlIndex);
+								return point;
+							}
+						}
+						else
+						{
+							selectedIndex = index;
+							ResetTransformGizmo();
+							Repaint();
+						}
+					}
+				}
+			}
+			else
+			{
+				Handles.color = Color.white.SetA(0.3f);
+				Handles.DrawWireDisc(point, toCamera, size * handleSize);
 			}
 
 			if (selectedIndex == index)
 			{
-				if(index % 3 == 0)
+				if (Tools.current == Tool.Rotate)
 				{
-					if (spline.NormalType == NormalType.LocalUp && Tools.current == Tool.Rotate)
-						Tools.current = Tool.Move;
+					EditorGUI.BeginChangeCheck();
 
-					if (Tools.current == Tool.Rotate)
+					Quaternion newRotation = Handles.DoRotationHandle(handleRotation, point);
+					Quaternion relativeRotation = newRotation * Quaternion.Inverse(handleRotation);
+					handleRotation = newRotation;
+
+					/*
+					Handles.color = Color.green;
+					Handles.DrawLine(point, point + handleRotation * Vector3.up);
+
+					Handles.color = Color.blue;
+					Handles.DrawLine(point, point + handleRotation * Vector3.forward);
+
+					Handles.color = Color.red;
+					Handles.DrawLine(point, point + handleRotation * Vector3.right);
+					*/
+
+					if (EditorGUI.EndChangeCheck())
 					{
-						EditorGUI.BeginChangeCheck();
+						Undo.RecordObject(Spline, "Rotate Point");
+						EditorUtility.SetDirty(Spline);
 
-						Quaternion newRotation = Handles.DoRotationHandle(handleRotation, point);
-						Quaternion relativeRotation = newRotation * Quaternion.Inverse(handleRotation);
-						handleRotation = newRotation;
+						Vector3 normal = Spline.GetControlNormal(controlIndex);
+						normal = relativeRotation * normal;
+						Spline.SetControlNormal(controlIndex, normal);
 
-						if (EditorGUI.EndChangeCheck())
+						if (index == 0)
 						{
-							Undo.RecordObject(spline, "Rotate Point");
-							EditorUtility.SetDirty(spline);
-
-							Vector3 normal = spline.GetControlNormal(selectedIndex);
-							normal = relativeRotation * normal;
-							spline.Normals[selectedIndex] = spline.transform.InverseTransformDirection(normal);
-
-							if (index > 0)
-							{
-								Vector3 p1 = spline.GetControlPoint(index - 1);
-								Vector3 toPos = relativeRotation * (p1 - point);
-								spline.SetControlPoint(index - 1, point + toPos, false);
-							}
-
-							// Need to check free because if aligned or mirrors, setting control point above
-							// applies needed update to other guide point, which makes the below cause a double offset
-							if (spline.GetControlPointMode(index) == BezierControlPointMode.Free &&
-								index + 1 < spline.ControlPointCount)
-							{
-								Vector3 p2 = spline.GetControlPoint(index + 1);
-								Vector3 toPos2 = relativeRotation * (p2 - point);
-								spline.SetControlPoint(index + 1, point + toPos2, false);
-							}
+							Vector3 p2 = Spline.GetControlPoint(index + 1);
+							Vector3 toPos = relativeRotation * (p2 - point);
+							Spline.SetControlPoint(index + 1, point + toPos, false);
 						}
-
-						return point;
-					}
-					else if(Tools.current == Tool.Scale)
-					{
-						EditorGUI.BeginChangeCheck();
-
-						Vector3 newScale = Handles.ScaleHandle(handleScale, point, handleRotation, HandleUtility.GetHandleSize(point));
-
-						float min = Mathf.Min(
-							newScale.x / handleScale.x,
-							newScale.y / handleScale.y, 
-							newScale.z / handleScale.z);
-
-						float max = Mathf.Max(
-							newScale.x / handleScale.x,
-							newScale.y / handleScale.y,
-							newScale.z / handleScale.z);
-
-						float scale = (max - 1f) > (1f - min) ? max : min; 
-
-						handleScale = newScale;
-
-						if (EditorGUI.EndChangeCheck())
+						else
 						{
-							Undo.RecordObject(spline, "Rotate Point");
-							EditorUtility.SetDirty(spline);
-
-							if (index > 0)
-							{
-								Vector3 p1 = spline.GetControlPoint(index - 1);
-								Vector3 toPos = scale * (p1 - point);
-								spline.SetControlPoint(index - 1, point + toPos, true);
-							}
-
-							if (index + 1 < spline.ControlPointCount)
-							{
-								Vector3 p2 = spline.GetControlPoint(index + 1);
-								Vector3 toPos2 = scale * (p2 - point);
-								spline.SetControlPoint(index + 1, point + toPos2, true);
-							}
+							Vector3 p1 = Spline.GetControlPoint(index - 1);
+							Vector3 toPos = relativeRotation * (p1 - point);
+							Spline.SetControlPoint(index - 1, point + toPos, false);
 						}
-
-
-						return point;
 					}
+
+					return point;
 				}
-
-				Tools.current = Tool.Move;
-
-				EditorGUI.BeginChangeCheck();
-				point = Handles.DoPositionHandle(point, handleRotation);
-				if (EditorGUI.EndChangeCheck())
+				else if (Tools.current == Tool.Scale)
 				{
-					Undo.RecordObject(spline, "Move Point");
-					EditorUtility.SetDirty(spline);
-					spline.SetControlPoint(index, point, true);
+					EditorGUI.BeginChangeCheck();
+
+					// This is to resolve a Unity bug that is storing current scale and multiplying the updated
+					// scale against that
+					if (Event.current.type == EventType.MouseDown)
+						handleScale = new Vector3(Mathf.Sqrt(handleScale.x), 1f, Mathf.Sqrt(handleScale.z));
+
+					Vector3 newScale = Handles.ScaleHandle(handleScale, point, handleRotation, HandleUtility.GetHandleSize(point));
+
+					Vector3 scaleDiff = new Vector3(
+						newScale.x / handleScale.x,
+						newScale.y / handleScale.y,
+						newScale.z / handleScale.z);
+
+					handleScale = newScale;
+
+					if (EditorGUI.EndChangeCheck())
+					{
+						Undo.RecordObject(Spline, "Scale Point");
+						EditorUtility.SetDirty(Spline);
+
+						if (index > 0)
+						{
+							Vector3 p1 = Spline.GetControlPoint(index - 1);
+							Vector3 toPos = scaleDiff.z * (p1 - point);
+							Spline.SetControlPoint(index - 1, point + toPos, true);							
+						}
+
+						if (index + 1 < Spline.PointCount)
+						{
+							Vector3 p2 = Spline.GetControlPoint(index + 1);
+							Vector3 toPos2 = scaleDiff.z * (p2 - point);
+							Spline.SetControlPoint(index + 1, point + toPos2, true);
+						}
+
+						Vector2 scalar = Spline.Scalars[controlIndex];
+						scalar.Scale(scaleDiff);
+
+						Spline.SetControlScalar(controlIndex, scalar);
+					}
+
+
+					return point;
+				}
+				else if (Tools.current == Tool.Move)
+				{
+					EditorGUI.BeginChangeCheck();
+
+					point = Handles.DoPositionHandle(point, handleRotation);
+					if (EditorGUI.EndChangeCheck())
+					{
+						Undo.RecordObject(Spline, "Move Point");
+						EditorUtility.SetDirty(Spline);
+
+						Spline.SetControlPoint(index, point, true);
+					}
 				}
 			}
 

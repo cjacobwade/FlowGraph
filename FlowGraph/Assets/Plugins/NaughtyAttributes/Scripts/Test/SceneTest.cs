@@ -23,6 +23,6 @@ namespace NaughtyAttributes.Test
 	public struct SceneNest2
 	{
 		[Scene]
-		public int scene2;
+		public string scene2;
 	}
 }

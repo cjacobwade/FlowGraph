@@ -119,21 +119,14 @@ public class InlineScriptableObjectDrawer : PropertyDrawer
 		}
 		else
 		{
-			EditorGUI.ObjectField(new Rect(position.x, position.y, position.width - 60, EditorGUIUtility.singleLineHeight), property);
+			EditorGUI.ObjectField(new Rect(position.x, position.y, position.width - 60, EditorGUIUtility.singleLineHeight), property, new GUIContent(property.displayName));
 			if (GUI.Button(new Rect(position.x + position.width - 58, position.y, 58, EditorGUIUtility.singleLineHeight), "Create"))
 			{
 				string selectedAssetPath = "Assets";
 				if (inlineAttr != null && !string.IsNullOrEmpty(inlineAttr.path))
 					selectedAssetPath = inlineAttr.path;
 
-// 				if (fieldInfo.FieldType == typeof(YarnProgram))
-// 				{
-// 					YarnEditorUtility.CreateYarnAsset();
-// 				}
-// 				else
-				{
-					property.objectReferenceValue = CreateAssetWithSavePrompt(fieldInfo.FieldType, selectedAssetPath);
-				}
+				property.objectReferenceValue = CreateAssetWithSavePrompt(fieldInfo.FieldType, selectedAssetPath);
 			}
 		}
 

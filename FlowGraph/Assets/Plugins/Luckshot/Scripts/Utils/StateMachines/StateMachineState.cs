@@ -8,8 +8,7 @@ namespace Luckshot.FSM
 	public class StateMachineState : MonoBehaviour
 	{
 		protected StateMachine stateMachine = null;
-		protected StateMachine StateMachine
-		{ get { return stateMachine; } }
+		protected StateMachine StateMachine => stateMachine;
 
 		public K GetState<K>() where K : StateMachineState
 		{ return stateMachine.GetState<K>(); }
@@ -42,7 +41,12 @@ namespace Luckshot.FSM
 		public virtual void AwakeIfNeeded() { }
 
 		public virtual bool CanEnterState()
-		{ return true; }
+		{
+			if (stateMachine.CurrentState == this)
+				return false;
+			
+			return true;
+		}
 
 		public virtual void Enter(StateParams stateParams)
 		{
@@ -60,6 +64,7 @@ namespace Luckshot.FSM
 			lastTimeInState = Time.time;
 		}
 		public virtual void FixedTick() { }
+		public virtual void LateTick() { }
 
 		public virtual void CollisionEnter(Collision collision) { }
 		public virtual void CollisionExit(Collision collision) { }
@@ -69,11 +74,15 @@ namespace Luckshot.FSM
 
 	public abstract class StateMachineState<T> : StateMachineState where T : MonoBehaviour
 	{
-		public T Owner
-		{ get { return stateMachine.Owner as T; } }
+		public T Owner => stateMachine.Owner as T;
 	}
 
 	public class StateParams
 	{
+		private StateMachine stateMachine = null;
+		public StateMachine StateMachine => stateMachine;
+		
+		public void SetStateMachine(StateMachine stateMachine)
+		{ this.stateMachine = stateMachine; }
 	}
 }

@@ -180,7 +180,7 @@ public static class ColorUtils
 
 	public static Texture2D CreateGradientTexture(Gradient gradient, int width)
 	{
-		var ramp = new Texture2D(width, 4, TextureFormat.RGB24, true, true);
+		var ramp = new Texture2D(width, 4, TextureFormat.RGBA32, true, true);
 		var colors = GetPixelsFromGradient(gradient, width);
 		ramp.SetPixels(colors);
 		ramp.Apply(true);

@@ -8,7 +8,7 @@ namespace NaughtyAttributes.Editor
 	[CustomPropertyDrawer(typeof(ResizableTextAreaAttribute))]
 	public class ResizableTextAreaPropertyDrawer : PropertyDrawerBase
 	{
-		protected override float GetPropertyHeight_Internal(SerializedProperty property, GUIContent label)
+		protected override float GetPropertyHeight(SerializedProperty property)
 		{
 			if (property.propertyType == SerializedPropertyType.String)
 			{
@@ -18,8 +18,15 @@ namespace NaughtyAttributes.Editor
 			}
 			else
 			{
-				return GetPropertyHeight(property) + GetHelpBoxHeight();
+				return base.GetPropertyHeight(property);
 			}
+		}
+
+		protected override float GetPropertyHeight_Internal(SerializedProperty property, GUIContent label)
+		{
+			return (property.propertyType == SerializedPropertyType.String)
+				? this.GetPropertyHeight(property)
+				: base.GetPropertyHeight(property) + GetHelpBoxHeight();
 		}
 
 		protected override void OnGUI_Internal(Rect rect, SerializedProperty property, GUIContent label)
@@ -43,7 +50,7 @@ namespace NaughtyAttributes.Editor
 				Rect textAreaRect = new Rect()
 				{
 					x = labelRect.x,
-					y = labelRect.y + EditorGUIUtility.singleLineHeight,
+					y = labelRect.y + EditorGUIUtility.singleLineHeight - 3.0f,
 					width = labelRect.width,
 					height = GetTextAreaHeight(property.stringValue)
 				};

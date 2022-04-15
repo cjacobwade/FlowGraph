@@ -9,6 +9,6 @@ public class RandomizeAnimationTime : MonoBehaviour
 
 	private void Awake()
 	{
-		animation.SetNormalizedTime(Random.value);
+		animation.SampleAnimation(Random.value);
 	}
 }

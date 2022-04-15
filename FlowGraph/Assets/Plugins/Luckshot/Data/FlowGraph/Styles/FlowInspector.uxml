@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="FlowInspector" style="flex-grow: 1; min-width: 300px; flex-shrink: 0;">
+        <ui:VisualElement name="HeaderRow" class="flow-inspector-header-row" style="flex-direction: row; flex-shrink: 0; height: 30px;" />
+        <ui:VisualElement name="ContentFrame" class="flow-inspector-content" style="flex-direction: column; flex-grow: 1; flex-shrink: 1; background-color: rgb(77, 77, 77); align-items: stretch; justify-content: flex-start;" />
+    </ui:VisualElement>
+</ui:UXML>

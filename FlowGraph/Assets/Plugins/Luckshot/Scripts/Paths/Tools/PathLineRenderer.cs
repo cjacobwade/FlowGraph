@@ -13,8 +13,17 @@ public class PathLineRenderer : MonoBehaviour
 	[SerializeField, AutoCache]
 	private LineRenderer line = null;
 
-	[SerializeField, OnValueChanged("UpdateLine")]
+	[SerializeField]
 	private float pointsPerUnit = 5f;
+
+	[SerializeField]
+	private Vector2 texScale = Vector2.one;
+
+	[SerializeField]
+	private float texScrollSpeed = 3f;
+
+	private MaterialPropertyBlock propertyBlock = null;
+	private readonly int texParamsID = Shader.PropertyToID("_MainTex_ST");
 
 	private void Awake()
 	{
@@ -24,7 +33,18 @@ public class PathLineRenderer : MonoBehaviour
 			path = GetComponent<PathBase>();
 		}
 
-		path.OnPathChanged -= Path_OnPathChanged;
+		path.PathChanged -= Path_OnPathChanged;
+	}
+
+	private void LateUpdate()
+	{
+		UpdateTexture();
+	}
+
+	public void Regenerate()
+	{
+		UpdateLine();
+		UpdateTexture();
 	}
 
 	private void Path_OnPathChanged(PathBase inPath)
@@ -32,7 +52,7 @@ public class PathLineRenderer : MonoBehaviour
 		if (path == inPath)
 			UpdateLine();
 		else
-			inPath.OnPathChanged -= Path_OnPathChanged;
+			inPath.PathChanged -= Path_OnPathChanged;
 	}
 
 	private void UpdateLine()
@@ -50,12 +70,33 @@ public class PathLineRenderer : MonoBehaviour
 		}
 	}
 
-	private void OnDrawGizmosSelected()
+	private void UpdateTexture()
 	{
+		if (propertyBlock == null)
+			propertyBlock = new MaterialPropertyBlock();
+
+		line.GetPropertyBlock(propertyBlock);
+		Vector4 texParams = propertyBlock.GetVector(texParamsID);
+		texParams.x = texScale.x * path.GetLength();
+		texParams.y = texScale.y;
+		texParams.z += texScrollSpeed * Time.deltaTime;
+		propertyBlock.SetVector(texParamsID, texParams);
+		line.SetPropertyBlock(propertyBlock);
+	}
+
+	private void OnDrawGizmos()
+	{
+		if (Application.IsPlaying(this))
+			return;
+
 		if (path != null)
 		{
-			path.OnPathChanged -= Path_OnPathChanged;
-			path.OnPathChanged += Path_OnPathChanged;
+			path.PathChanged -= Path_OnPathChanged;
+			path.PathChanged += Path_OnPathChanged;
 		}
+
+		UpdateLine();
+		UpdateTexture();
 	}
+
 }

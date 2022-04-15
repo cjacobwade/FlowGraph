@@ -4,7 +4,6 @@ namespace NaughtyAttributes
 {
 	public enum EColor
 	{
-		Clear,
 		White,
 		Black,
 		Gray,
@@ -24,8 +23,6 @@ namespace NaughtyAttributes
 		{
 			switch (color)
 			{
-				case EColor.Clear:
-					return new Color32(0, 0, 0, 0);
 				case EColor.White:
 					return new Color32(255, 255, 255, 255);
 				case EColor.Black:

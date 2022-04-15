@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9611241cb1400ec42ae1d28c8075627d, type: 3}
+  m_Name: FlowGraphSettings
+  m_EditorClassIdentifier: 
+  moduleDefaults:
+  - moduleName: FlowModule_Core
+    forceUOD: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+  - moduleName: FlowModule_Audio
+    forceUOD: {fileID: 11400000, guid: 8403f52990b57a64c9f8ac3f07e72f10, type: 2}
+  - moduleName: FlowModule_GoalManager
+    forceUOD: {fileID: 11400000, guid: af23b6fb1549d9949bb5e53fd39efd01, type: 2}
+  - moduleName: FlowModule_BigHops
+    forceUOD: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+  - moduleName: FlowModule_Player
+    forceUOD: {fileID: 11400000, guid: 30160ad778ae52a4f9a0484c233bbfd2, type: 2}
+  - moduleName: FlowModule_UI
+    forceUOD: {fileID: 11400000, guid: 336854c82b035b1438bf3e14dcd58aff, type: 2}
+  - moduleName: FlowModule_VoidDream
+    forceUOD: {fileID: 11400000, guid: f99748524423d644b934ef3c8da63673, type: 2}
+  dragAndDropSettings:
+  - typeObject: {fileID: 1827226128182048838, guid: 0617b4da26ea8ca45a4d7457b4abe2fd,
+      type: 3}
+    module: FlowModule_Animation
+    function: PlayAnimation
+  - typeObject: {fileID: 11400000, guid: 244a4dd522a49584cbc9039070e8367c, type: 2}
+    module: FlowModule_Camera
+    function: AddSettingsRequest
+  - typeObject: {fileID: 11400000, guid: fbde735146085014ba015ded79f01650, type: 2}
+    module: FlowModule_GoalManager
+    function: CompleteGoal
+  - typeObject: {fileID: 11400000, guid: 30160ad778ae52a4f9a0484c233bbfd2, type: 2}
+    module: FlowModule_Core
+    function: SetActive
+  - typeObject: {fileID: 3335000413201092310, guid: 5418bc6cc8e382a4c825d5f88d301d7b,
+      type: 3}
+    module: FlowModule_Core
+    function: SpawnPrefab
+  - typeObject: {fileID: 11400000, guid: 688ff3671d33d704598a76cc4ac053a3, type: 2}
+    module: FlowModule_Core
+    function: PlayFlow
+  - typeObject: {fileID: 11400000, guid: befc8f8bd51021b4f811d1dbd31212a1, type: 2}
+    module: FlowModule_SceneVisuals
+    function: AddSettingsRequest
+  - typeObject: {fileID: 11400000, guid: 3f7885f95c84c994c9fe2638c303aea3, type: 2}
+    module: FlowModule_Timeline
+    function: Play
+  - typeObject: {fileID: 11400000, guid: 6de559c1f2c25cd4d97cad4c4ec8077f, type: 2}
+    module: FlowModule_Player
+    function: UnlockGadget

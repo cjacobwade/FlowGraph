@@ -5,6 +5,7 @@ using UnityEditor;
 using System.Reflection;
 using System;
 
+[CanEditMultipleObjects]
 [CustomPropertyDrawer(typeof(AutoCacheAttribute))]
 public class AutoCacheAttributeDrawer : PropertyDrawer
 {

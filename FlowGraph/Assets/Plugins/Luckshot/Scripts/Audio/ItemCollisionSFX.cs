@@ -24,7 +24,6 @@ public class ItemCollisionSFX : MonoBehaviour
 	private float cooldown = 0.2f;
 	private float lastHitTime = -Mathf.Infinity;
 
-	private float volume = 0.5f;
 	private FloatRange pitchRange = new FloatRange(0.9f, 1.1f);
 
 	private float maxHitForce = 20f;
@@ -34,7 +33,6 @@ public class ItemCollisionSFX : MonoBehaviour
 
 	[SerializeField]
 	private bool disableCollisionSFX = false;
-
 	private void Awake()
 	{
 		if (disableCollisionSFX)
@@ -47,7 +45,7 @@ public class ItemCollisionSFX : MonoBehaviour
 			return;
 
 		float hitForce = collision.relativeVelocity.magnitude;
-		float appliedVolume = volume * Mathf.Clamp01(hitForce / maxHitForce);
+		float appliedVolume = Mathf.Clamp01(hitForce / maxHitForce);
 		if (appliedVolume < minHitVolume)
 			return;
 
@@ -61,14 +59,15 @@ public class ItemCollisionSFX : MonoBehaviour
 		PhysicMaterial otherMat = contact.otherCollider.sharedMaterial;
 
 		CollisionSFXPair collisionSFXPair = CollisionSFXMatrix.FindMatchingCollisionPair(myMat, otherMat);
-		if (collisionSFXPair.clips.Length > 0)
+
+		/*
+		var eventInstance = AudioManager.Instance.PlaySound(collisionSFXPair.audioEvent, parentGameObject: collision.gameObject);
+		if (eventInstance.isValid())
 		{
-			AudioClip clip = collisionSFXPair.clips.Random();
-			if (clip != null)
-			{
-				AudioManager.Instance.PlaySound(clip, contact.point, appliedVolume, pitchRange.Random);
-			}
+			eventInstance.setVolume(appliedVolume);
+			eventInstance.setPitch(pitchRange.Random);
 		}
+		*/
 
 		lastHitTime = Time.time;
 	}

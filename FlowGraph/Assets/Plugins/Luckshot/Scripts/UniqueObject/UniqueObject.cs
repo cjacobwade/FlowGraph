@@ -7,8 +7,7 @@ public class UniqueObject : MonoBehaviour
 {
 	[SerializeField]
 	private UniqueObjectData data = null;
-	public UniqueObjectData Data
-	{ get { return data; } }
+	public UniqueObjectData Data => data;
 
 #if UNITY_EDITOR
 	[Button("Find Or Create UniqueObjectData")]
@@ -18,7 +17,7 @@ public class UniqueObject : MonoBehaviour
 
 	private bool registered = false;
 
-	private void Awake()
+	private void Start()
 	{
 		RegisterIfNeeded();
 	}
@@ -28,21 +27,45 @@ public class UniqueObject : MonoBehaviour
 		if (registered)
 			return;
 
-		registered = true;
-
-		if (data == null)
-		{
-			Debug.LogWarning("No UniqueObjectData assigned. Please fix", this);
-		}
-		else
+		if (data != null)
 		{
 			UniqueObjectManager.Instance.RegisterUniqueObject(this);
+			registered = true;
+		}
+	}
+
+	public void SetData(UniqueObjectData setData)
+	{
+		if (data != setData)
+		{
+			if (data != null)
+			{
+				UniqueObjectManager.Instance.UnregisterUniqueObject(this);
+				registered = false;
+			}
+
+			data = setData;
+
+			if (data != null)
+			{
+				UniqueObjectManager.Instance.RegisterUniqueObject(this);
+				registered = true;
+			}
 		}
 	}
 
 	private void OnDestroy()
 	{
 		if (UniqueObjectManager.Instance != null)
-			UniqueObjectManager.Instance.DeregisterUniqueObject(this);
+		{
+			UniqueObjectManager.Instance.UnregisterUniqueObject(this);
+			registered = false;
+		}
+	}
+
+	private void OnDrawGizmos()
+	{
+		Gizmos.color = Color.blue.SetA(0.2f);
+		Gizmos.DrawSphere(transform.position, 0.3f);
 	}
 }

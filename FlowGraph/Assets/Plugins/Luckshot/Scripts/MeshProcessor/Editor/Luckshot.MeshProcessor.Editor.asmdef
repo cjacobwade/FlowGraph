@@ -1,0 +1,18 @@
+{
+    "name": "Luckshot.MeshProcessor.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d41e52d288219534a9b62c030292884f"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

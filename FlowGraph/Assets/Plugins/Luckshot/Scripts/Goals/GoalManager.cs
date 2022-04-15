@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class GoalManager : Singleton<GoalManager>
 {
-	// TODO: Make an attribute that loads all assets of type under a folder path
-	// into a field at build time. Something like ReferenceFolderContents("Assets/Data/Goals")
 	[SerializeField]
 	private List<GoalData> allGoals = new List<GoalData>();
 
@@ -31,11 +29,16 @@ public class GoalManager : Singleton<GoalManager>
 	private Dictionary<GoalData, GoalState> goalDataToStateMap = new Dictionary<GoalData, GoalState>();
 	private Dictionary<GoalData, List<GoalData>> goalDataToParentMap = new Dictionary<GoalData, List<GoalData>>();
 
-	public System.Action<GoalData> OnGoalCompleted = delegate { };
+	public event System.Action<GoalData> OnGoalCompleted = delegate { };
+
+	[SerializeField]
+	private GoalData[] freeplayGoals = null;
 
 	protected override void Awake()
 	{
 		base.Awake();
+
+		allGoals.AddRange(Resources.LoadAll<GoalData>("GoalDatas/"));
 
 		goalStates = new GoalState[allGoals.Count];
 		for(int i = 0; i < goalStates.Length; i++)
@@ -61,6 +64,12 @@ public class GoalManager : Singleton<GoalManager>
 						parentGoals.Add(goal);
 				}
 			}
+		}
+
+		if (BigHopsPrefs.Instance.ProgressMode == ProgressMode.Freeplay)
+		{
+			foreach (var goal in freeplayGoals)
+				CompleteGoal(goal);
 		}
 	}
 

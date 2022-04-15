@@ -1,81 +1,77 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Luckshot.Paths
 {
 	public abstract class AdvSpline<T> : SplinePath where T : SplineNodeData, new()
 	{
-		// Array of node data
-		// Access node data of specific main control point
-		// Get interp'd node data at whatever alpha
-
 		[SerializeField]
-		T[] nodeData = null;
-		protected T[] NodeData
+		private List<T> nodes = new List<T>();
+		protected List<T> Nodes
 		{
 			get
 			{
-				if (nodeData == null || nodeData.Length == 0)
-					Reset();
-
-				return nodeData;
+				if (nodes.Count == 0) Reset();
+				return nodes;
 			}
 		}
 
-		public T GetNodeData(int i)
-		{
-			return NodeData[i];
-		}
+		public int NodeCount => nodes.Count;
+
+		public T GetNodeData(int index)
+		{ return nodes[index]; }
+
+		public void SetNodeData(int index, T nodeData)
+		{ nodes[index] = nodeData; }
 
 		public void InterpNodeData(T inNodeData, float a)
 		{
 			a = Mathf.Clamp01(a);
 
-			a *= (NodeData.Length - 1);
+			a *= (NodeCount - 1);
 			int prev = Mathf.FloorToInt(a);
 			int next = Mathf.CeilToInt(a);
 
-			if (prev < NodeData.Length - 1)
+			if (prev < NodeCount - 1)
 				a -= (float)prev;
 
-			inNodeData.Lerp(NodeData[prev], NodeData[next], Mathf.Clamp01(a));
+			inNodeData.Lerp(Nodes[prev], Nodes[next], Mathf.Clamp01(a));
 		}
 
-		public void SetNodeData(int i, T inNodeData)
+		public override void InsertControl(int curveIndex, Vector3 point)
 		{
-			NodeData[i] = inNodeData;
-		}
+			base.InsertControl(curveIndex, point);
 
-		public override void AddCurve()
-		{
-			base.AddCurve();
+			nodes.Insert(curveIndex, new T());
 
-			Array.Resize(ref nodeData, NodeData.Length + 1);
-			NodeData[NodeData.Length - 1] = new T();
-
+			// NOTE: This is going to cause weirdness
+			// need to come up with some deep copy solution instead
 			if (loop)
-				NodeData[NodeData.Length - 1] = NodeData[0];
+				nodes[NodeCount - 1] = nodes[0];
 		}
 
-		public override void RemoveCurve()
+		public override void RemoveControl(int curveIndex)
 		{
-			base.RemoveCurve();
+			if (CurveCount > 1)
+			{
+				nodes.RemoveAt(curveIndex);
 
-			Array.Resize(ref nodeData, NodeData.Length - 1);
-
-			if (loop)
-				NodeData[NodeData.Length - 1] = NodeData[0];
+				// NOTE: This is going to cause weirdness
+				// need to come up with some deep copy solution instead
+				if (loop)
+					nodes[NodeCount - 1] = nodes[0];
+			}
 		}
 
 		public override void Reset()
 		{
 			base.Reset();
 
-			nodeData = new T[]
-			{
-			new T(),
-			new T()
-			};
+			nodes.Clear();
+			nodes.Add(new T());
+			nodes.Add(new T());
 		}
 	}
 }

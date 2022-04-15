@@ -14,21 +14,33 @@ public class PathMover : MonoBehaviour
 
 	[SerializeField]
 	private float speed = 1f;
+	public void SetSpeed(float inSpeed)
+	{ 
+		speed = inSpeed;
+		reversed = false;
+	}
 
 	private float lineAlpha = 0f;
+	public float LineAlpha => lineAlpha;
+
+	public void SetLineAlpha(float lineAlpha)
+	{
+		this.lineAlpha = lineAlpha;
+		ApplyLineAlpha(lineAlpha);
+	}
+
 	private bool reversed = false;
 
 	[SerializeField]
 	private bool pauseAtEnds = false;
 
-	[SerializeField, ShowIf("pauseAtEnds")]
-	private float pauseAtEndsTime = 1f;
-	private float lastEndTime = 0f;
+	[SerializeField]
+	private bool changeRotation = false;
 
 	private void Awake()
 	{
 		lineAlpha = path.GetNearestAlpha(rigidbody.position);
-		rigidbody.position = path.GetPoint(lineAlpha);
+		ApplyLineAlpha(lineAlpha);
 	}
 
 	private void FixedUpdate()
@@ -36,15 +48,30 @@ public class PathMover : MonoBehaviour
 		if (rigidbody == null || path == null)
 			return;
 
-		if (!pauseAtEnds || Time.time > lastEndTime + pauseAtEndsTime)
+		if (speed != 0f)
 		{
 			bool wasReversed = reversed;
 			lineAlpha = path.MoveAtFixedSpeed(lineAlpha, speed * Time.deltaTime, ref reversed);
 
-			if (wasReversed != reversed)
-				lastEndTime = Time.time;
+			if (pauseAtEnds && wasReversed != reversed)
+				speed = 0f;
 
-			rigidbody.position = path.GetPoint(lineAlpha);
+			ApplyLineAlpha(lineAlpha);
+		}
+	}
+
+	private void ApplyLineAlpha(float lineAlpha)
+    {
+		this.lineAlpha = lineAlpha;
+
+		Vector3 pos = path.GetPoint(lineAlpha);
+		rigidbody.MovePosition(pos);
+
+		if (changeRotation)
+		{
+			Vector3 dir = path.GetDirection(lineAlpha);
+			Quaternion rot = Quaternion.LookRotation(dir, Vector3.up);
+			rigidbody.MoveRotation(rot);
 		}
 	}
 }

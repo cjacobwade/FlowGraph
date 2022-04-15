@@ -5,19 +5,17 @@ using UnityEngine;
 [DefaultExecutionOrder(-100)]
 public class PersistentItem : PropertyItem
 {
-	protected override void Awake()
-	{
-		base.Awake();
+    protected override void AwakeIfNeeded()
+    {
+        base.AwakeIfNeeded();
 		SaveManager.Instance.RegisterItem(Item);
 	}
 
-	protected override void OnDestroy()
+    protected override void OnDestroy()
 	{
 		base.OnDestroy();
 
 		if(SaveManager.Instance != null)
-		{
 			SaveManager.Instance.DeregisterItem(Item);
-		}
 	}
 }

@@ -11,18 +11,12 @@ public struct RigidbodySettings
 	public float mass;
 	public float drag;
 	public float angularDrag;
-	public bool useGravity;
-	public RigidbodyConstraints constraints;
-	public CollisionDetectionMode collisionDetectionMode;
 
 	public RigidbodySettings(Rigidbody rigidbody)
 	{
 		mass = rigidbody.mass;
 		drag = rigidbody.drag;
 		angularDrag = rigidbody.angularDrag;
-		useGravity = rigidbody.useGravity;
-		constraints = rigidbody.constraints;
-		collisionDetectionMode = rigidbody.collisionDetectionMode;
 	}
 
 	public void Apply(Rigidbody rigidbody)
@@ -30,9 +24,6 @@ public struct RigidbodySettings
 		rigidbody.mass = mass;
 		rigidbody.drag = drag;
 		rigidbody.angularDrag = angularDrag;
-		rigidbody.useGravity = useGravity;
-		rigidbody.constraints = constraints;
-		rigidbody.collisionDetectionMode = collisionDetectionMode;
 	}
 }
 
@@ -41,19 +32,53 @@ public struct RigidbodySettings
 public class Item : MonoBehaviour
 {
 	public static bool FindNearestParentItem(Collider collider, out Item item)
+	{ return FindNearestParentItem(collider.transform, out item); }
+
+	public static bool FindNearestParentItem(Transform transform, out Item item)
 	{
 		item = null;
 
-		if (collider != null)
-			item = collider.GetComponentInParent<Item>();
+		if (transform != null)
+			item = transform.GetComponentInParent<Item>();
 
 		return item != null;
 	}
 
 	[SerializeField]
 	private ItemData itemData = null;
-	public ItemData Data
-	{ get { return itemData; } }
+	public ItemData Data => itemData;
+
+	public LensManagerColor ColorLens = new LensManagerColor(requests => LensUtils.Priority(requests));
+
+	public Color CurrentColor
+	{
+		get
+		{
+			if (ColorLens.GetRequestCount > 0)
+				return ColorLens;
+
+			if (itemData != null)
+				return itemData.color;
+
+			return Color.white;
+		}
+	}
+
+	public LensManagerString NameLens = new LensManagerString(requests => LensUtils.Priority(requests));
+
+	public string CurrentName
+	{
+		get
+		{
+			if (NameLens.GetRequestCount > 0)
+				return NameLens;
+
+			if (itemData != null)
+				return itemData.Name;
+
+			return gameObject.name;
+		}
+	}
 
 #if UNITY_EDITOR
 	[Button("Find Or Create Item Data")]
@@ -63,6 +88,7 @@ public class Item : MonoBehaviour
 
 	#region Properties
 	private Dictionary<Type, PropertyItem> typeToPropertyMap = new Dictionary<Type, PropertyItem>();
+	public Dictionary<Type, PropertyItem> TypeToPropertyMap => typeToPropertyMap;
 
 	public void RegisterProperty(PropertyItem propertyItem)
 	{
@@ -96,6 +122,20 @@ public class Item : MonoBehaviour
 		return property as T;
 	}
 
+	public PropertyItem GetProperty(Type type)
+    {
+		if(!typeToPropertyMap.TryGetValue(type, out PropertyItem property))
+        {
+			foreach(var kvp in typeToPropertyMap)
+            {
+				if (kvp.Key.IsSubclassOf(type))
+					return kvp.Value;
+            }
+        }
+
+		return property;
+    }
+
 	public T GetOrAddProperty<T>() where T : PropertyItem
 	{
 		T property = GetProperty<T>();
@@ -113,21 +153,25 @@ public class Item : MonoBehaviour
 	#region Physics
 	[SerializeField, AutoCache]
 	protected new Rigidbody rigidbody = null;
-	public Rigidbody Rigidbody
-	{ get { return rigidbody; } }
+	public Rigidbody Rigidbody => rigidbody;
 
 	public LensManagerBool UseGravityLens = null;
+	public LensManagerBool KinematicLens = null;
+	public LensManager<CollisionDetectionMode> CollisionModeLens = null;
+	public LensManager<RigidbodyConstraints> ConstraintsLens = null;
+
 	public LensManagerFloat DragLens = null;
 	public LensManagerFloat AngularDragLens = null;
 
 	private List<Collider> allColliders = new List<Collider>();
-	public List<Collider> AllColliders
-	{ get { return allColliders; } }
+	public List<Collider> AllColliders => allColliders;
 
 	[SerializeField, ReadOnly]
 	private Bounds localBounds = new Bounds();
-	public Bounds LocalBounds
-	{ get { return localBounds; } }
+	public Bounds LocalBounds => localBounds;
+
+	public Bounds CalculateWorldBounds()
+	{ return PhysicsUtils.CalculateCollidersBounds(AllColliders); }
 
 	public Vector3 Center
 	{ get { return transform.TransformPoint(localBounds.center); } }
@@ -144,28 +188,6 @@ public class Item : MonoBehaviour
 	public float Volume
 	{ get { return localBounds.size.x * localBounds.size.y * localBounds.size.z; } }
 
-	private Vector3[] worldCorners = new Vector3[8];
-	public Vector3[] CalculateWorldCorners()
-	{
-		Vector3 center = transform.TransformPoint(localBounds.center);
-
-		Vector3 right = transform.right * localBounds.size.x;
-		Vector3 up = transform.up * localBounds.size.y;
-		Vector3 forward = transform.forward * localBounds.size.z;
-
-		worldCorners[0] = center - up - right - forward;
-		worldCorners[1] = center - up - right + forward;
-		worldCorners[2] = center - up + right - forward;
-		worldCorners[3] = center - up + right + forward;
-
-		worldCorners[4] = center + up - right - forward;
-		worldCorners[5] = center + up - right + forward;
-		worldCorners[6] = center + up + right - forward;
-		worldCorners[7] = center + up + right + forward;
-
-		return worldCorners;
-	}
-
 	private RigidbodySettings? backupSettings = null;
 
 	public RigidbodySettings RigidbodySettings
@@ -181,78 +203,135 @@ public class Item : MonoBehaviour
 		}
 	}
 
-	public static void SetIgnoreCollisionBetweenItems(Item a, Item b, bool setIgnored)
-	{
-		if (a == null || b == null)
-			return;
-
-		for (int j = 0; j < a.AllColliders.Count; j++)
-		{
-			Collider aCollider = a.AllColliders[j];
-			if (aCollider == null ||
-				aCollider.isTrigger ||
-				!aCollider.enabled ||
-				!aCollider.gameObject.activeInHierarchy)
-			{
-				continue;
-			}
-
-			for (int k = 0; k < b.AllColliders.Count; k++)
-			{
-				Collider bCollider = b.AllColliders[k];
-				if (bCollider == null ||
-					bCollider.isTrigger ||
-					!bCollider.enabled ||
-					!bCollider.gameObject.activeInHierarchy)
-				{
-					continue;
-				}
-
-				Physics.IgnoreCollision(aCollider, bCollider, setIgnored);
-			}
-		}
-	}
 	#endregion // Physics
 
 	#region IgnoredColliders
+#if UNITY_EDITOR
+	[SerializeField, ReadOnly]
+	private List<Collider> ignoredColliders = new List<Collider>();
+#else
 	private HashSet<Collider> ignoredColliders = new HashSet<Collider>();
+#endif
 
 	public bool IsColliderIgnored(Collider collider)
 	{ return ignoredColliders.Contains(collider); }
 
-	public void AddIgnoredCollider(Collider addCollider)
-	{ ignoredColliders.Add(addCollider); }
+	public void SetIgnoreCollider(Collider otherCollider, bool setIgnore = true)
+    {
+		foreach(var collider in allColliders)
+			Physics.IgnoreCollision(collider, otherCollider, setIgnore);
 
-	public bool RemoveIgnoredCollider(Collider removeCollider)
-	{ return ignoredColliders.Remove(removeCollider); }
+		if (setIgnore)
+			_AddIgnoredCollider(otherCollider);
+		else
+			_RemoveIgnoredCollider(otherCollider);
+    }
 
-	public void AddIgnoredColliders(IEnumerable<Collider> addColliders)
+	public void SetIgnoreColliders(IEnumerable<Collider> otherColliders, bool setIgnore = true)
 	{
-		foreach (var addCollider in addColliders)
-			AddIgnoredCollider(addCollider);
+		foreach(var collider in allColliders)
+		{
+			foreach (var otherCollider in otherColliders)
+			{
+				_IgnoreCollision(collider, otherCollider, setIgnore);
+			}
+		}
+
+		if (setIgnore)
+			_AddIgnoredColliders(otherColliders);
+		else
+			_RemoveIgnoredColliders(otherColliders);
 	}
 
-	public bool RemoveIgnoredColliders(IEnumerable<Collider> removeColliders)
+	private void _IgnoreCollision(Collider a, Collider b, bool setIgnore = true)
+	{
+		if (a != null && b != null)
+			Physics.IgnoreCollision(a, b, setIgnore);
+	}
+
+	private void _AddIgnoredCollider(Collider addCollider)
+	{ ignoredColliders.Add(addCollider); }
+
+	private bool _RemoveIgnoredCollider(Collider removeCollider)
+	{ return ignoredColliders.Remove(removeCollider); }
+
+	private void _AddIgnoredColliders(IEnumerable<Collider> addColliders)
+	{
+		foreach (var addCollider in addColliders)
+			_AddIgnoredCollider(addCollider);
+	}
+
+	private bool _RemoveIgnoredColliders(IEnumerable<Collider> removeColliders)
 	{
 		bool removed = false;
 		foreach (var removeCollider in removeColliders)
 		{
-			if (RemoveIgnoredCollider(removeCollider))
+			if (_RemoveIgnoredCollider(removeCollider))
 				removed = true;
 		}
 		return removed;
+	}
+
+	private static List<Collider> ignoreAColliders = new List<Collider>();
+	private static List<Collider> ignoreBColliders = new List<Collider>();
+
+	public static void SetIgnoreCollisionBetweenItems(Item aItem, Item bItem, bool setIgnored = true)
+	{
+		if (aItem == null || bItem == null)
+			return;
+
+		ignoreAColliders.Clear();
+		ignoreBColliders.Clear();
+
+		for (int j = 0; j < aItem.AllColliders.Count; j++)
+		{
+			Collider aCollider = aItem.AllColliders[j];
+			if (aCollider == null || aCollider.isTrigger)
+				continue;
+
+			ignoreAColliders.Add(aCollider);
+		}
+
+		for (int k = 0; k < bItem.AllColliders.Count; k++)
+		{
+			Collider bCollider = bItem.AllColliders[k];
+			if (bCollider == null || bCollider.isTrigger)
+				continue;
+
+			ignoreBColliders.Add(bCollider);
+		}
+
+		for (int i = 0; i < ignoreAColliders.Count; i++)
+		{
+			Collider aCollider = ignoreAColliders[i];
+
+			for (int j = 0; j < ignoreBColliders.Count; j++)
+			{
+				Collider bCollider = ignoreBColliders[j];
+				Physics.IgnoreCollision(aCollider, bCollider, setIgnored);
+			}
+		}
+
+		if (setIgnored)
+		{
+			aItem._AddIgnoredColliders(ignoreBColliders);
+			bItem._AddIgnoredColliders(ignoreAColliders);
+		}
+		else
+		{
+			aItem._RemoveIgnoredColliders(ignoreBColliders);
+			bItem._RemoveIgnoredColliders(ignoreAColliders);
+		}
 	}
 	#endregion
 
 	[SerializeField, AutoCache]
 	private VisualsModel visualsModel = null;
-	public VisualsModel VisualsModel
-	{ get { return visualsModel; } }
+	public VisualsModel VisualsModel => visualsModel;
 
 	[SerializeField, AutoCache]
 	private ColliderModel colliderModel = null;
-	public ColliderModel ColliderModel
-	{ get { return colliderModel; } }
+	public ColliderModel ColliderModel => colliderModel;
 
 	public event Action<Item, Bounds> OnBoundsChanged = delegate { };
 	public event Action<Item> OnCollidersChanged = delegate { };
@@ -269,6 +348,9 @@ public class Item : MonoBehaviour
 	public event Action<Item> OnItemEnabled = delegate { };
 	public event Action<Item> OnItemDisabled = delegate { };
 
+	private bool beingDestroyed = false;
+	public bool BeingDestroyed => beingDestroyed;
+
 	public event Action<Item> OnItemDestroyed = delegate { };
 
 	private bool collidersDirty = false;
@@ -278,30 +360,65 @@ public class Item : MonoBehaviour
 		RefreshColliders();
 
 		if (visualsModel == null)
-			visualsModel = gameObject.AddComponent<VisualsModel>();
+		{
+			visualsModel = GetComponent<VisualsModel>();
+			if(visualsModel == null)
+				visualsModel = gameObject.AddComponent<VisualsModel>();
+		}
 
 		if (colliderModel == null)
-			colliderModel = gameObject.AddComponent<ColliderModel>();
-
-		bool defaultUseGravity = true;
+		{
+			colliderModel = GetComponent<ColliderModel>();
+			if(colliderModel == null)
+				colliderModel = gameObject.AddComponent<ColliderModel>();
+		}
+		
 		float defaultDrag = 0f;
 		float defaultAngularDrag = 0.05f;
 
+		bool defaultKinematic = false;
+		bool defaultUseGravity = true;
+
+		CollisionDetectionMode defaultCollisionMode = CollisionDetectionMode.Discrete;
+		RigidbodyConstraints defaultConstraints = RigidbodyConstraints.None;
+
 		if (rigidbody != null)
 		{
-			defaultUseGravity = rigidbody.useGravity;
 			defaultDrag = rigidbody.drag;
 			defaultAngularDrag = rigidbody.angularDrag;
+
+			defaultKinematic = rigidbody.isKinematic;
+			defaultUseGravity = rigidbody.useGravity;
+
+			defaultCollisionMode = rigidbody.collisionDetectionMode;
+			defaultConstraints = rigidbody.constraints;
 		}
 
 		UseGravityLens = new LensManagerBool(requests => LensUtils.AllTrue(requests, defaultUseGravity));
 		UseGravityLens.OnValueChanged += UseGravityLens_OnValueChanged;
+
+		KinematicLens = new LensManagerBool(requests => LensUtils.AnyTrue(requests, defaultKinematic));
+		KinematicLens.OnValueChanged += KinematicLens_OnValueChanged;
+
+		CollisionModeLens = new LensManager<CollisionDetectionMode>(requests => LensUtils.Priority(requests, defaultCollisionMode));
+		CollisionModeLens.OnValueChanged += CollisionModeLens_OnValueChanged;
+
+		ConstraintsLens = new LensManager<RigidbodyConstraints>(requests => LensUtils.Priority(requests, defaultConstraints));
+		ConstraintsLens.OnValueChanged += ConstraintsLens_OnValueChanged;
 
 		DragLens = new LensManagerFloat(requests => LensUtils.Priority(requests, defaultDrag));
 		DragLens.OnValueChanged += DragLens_OnValueChanged;
 
 		AngularDragLens = new LensManagerFloat(requests => LensUtils.Priority(requests, defaultAngularDrag));
 		AngularDragLens.OnValueChanged += AngularDragLens_OnValueChanged;
+	}
+
+	private void Start()
+	{ 
+		// Make sure any disabled components still get initialized to have Item ref
+		PropertyItem[] propertyItems = GetComponents<PropertyItem>();
+		for (int i = 0; i < propertyItems.Length; i++)
+			propertyItems[i].Awake();
 	}
 
 	private void OnEnable()
@@ -359,11 +476,43 @@ public class Item : MonoBehaviour
 		OnStateChanged(this, property);
 	}
 
+
+	[ContextMenu("Refresh Colliders")]
+	public void RefreshColliders()
+	{
+		allColliders.Clear();
+
+		Collider[] colliders = GetComponentsInChildren<Collider>(true);
+		allColliders.AddRange(colliders);
+
+		NotifyCollidersChanged();
+	}
+
 	private void UseGravityLens_OnValueChanged(bool useGravity)
 	{
-		RigidbodySettings settings = RigidbodySettings;
-		settings.useGravity = useGravity;
-		RigidbodySettings = settings;
+		if(Rigidbody != null)
+			Rigidbody.useGravity = useGravity;
+	}
+
+	private void KinematicLens_OnValueChanged(bool isKinematic)
+	{
+		if (Rigidbody != null)
+		{
+			Rigidbody.collisionDetectionMode = isKinematic ? CollisionDetectionMode.Discrete : CollisionModeLens;
+			Rigidbody.isKinematic = isKinematic;
+		}
+	}
+
+	private void CollisionModeLens_OnValueChanged(CollisionDetectionMode collisionMode)
+	{
+		if (Rigidbody != null)
+			Rigidbody.collisionDetectionMode = KinematicLens ? CollisionDetectionMode.Discrete : collisionMode;
+	}
+
+	private void ConstraintsLens_OnValueChanged(RigidbodyConstraints constraints)
+	{
+		if (Rigidbody != null)
+			Rigidbody.constraints = constraints;
 	}
 
 	private void DragLens_OnValueChanged(float drag)
@@ -380,18 +529,11 @@ public class Item : MonoBehaviour
 		RigidbodySettings = settings;
 	}
 
-	public void RefreshColliders()
-	{
-		allColliders.Clear();
-
-		Collider[] colliders = GetComponentsInChildren<Collider>(true);
-		allColliders.AddRange(colliders);
-
-		NotifyCollidersChanged();
-	}
-
 	public void RemoveRigidbody()
 	{
+		if (rigidbody == null)
+			return;
+
 		OnWillRemoveRigidbody(this, rigidbody);
 
 		backupSettings = RigidbodySettings;
@@ -400,7 +542,9 @@ public class Item : MonoBehaviour
 		// so zero velocity / angular velocity incase this happens before FixedUpdate
 		// in which case rigidbody will keep on moving
 
+		rigidbody.collisionDetectionMode = CollisionDetectionMode.Discrete; // only here to avoid warning
 		rigidbody.isKinematic = true;
+
 		rigidbody.velocity = Vector3.zero;
 		rigidbody.angularVelocity = Vector3.zero;
 
@@ -415,6 +559,11 @@ public class Item : MonoBehaviour
 		if(rigidbody == null)
 			rigidbody = gameObject.AddComponent<Rigidbody>();
 
+		rigidbody.useGravity = UseGravityLens;
+		rigidbody.isKinematic = KinematicLens;
+		rigidbody.constraints = ConstraintsLens;
+		rigidbody.collisionDetectionMode = rigidbody.isKinematic ? CollisionDetectionMode.Discrete : CollisionModeLens;
+
 		if (backupSettings.HasValue)
 		{
 			RigidbodySettings = backupSettings.Value;
@@ -424,49 +573,19 @@ public class Item : MonoBehaviour
 		OnRigidbodyAdded(this, rigidbody);
 	}
 
-	[ContextMenu("Refresh Bounds")]
 	public void RefreshBounds()
 	{
-		localBounds = PhysicsUtils.EncapsulateColliders(allColliders, transform);
+		localBounds = PhysicsUtils.CalculateCollidersBounds(allColliders, transform);
 		OnBoundsChanged(this, localBounds);
-	}
-
-	public void ApplyItemState(ItemState itemState)
-	{
-		for (int i = 0; i < itemState.propertyStates.Count; i++)
-		{
-			string typeString = itemState.propertyStates[i].type;
-
-			PropertyItem property = GetComponent(typeString) as PropertyItem;
-			if (property == null)
-			{
-				Type type = ItemManager.Instance.GetTypeFromPropertyName(typeString); 
-				if(type.IsSubclassOf(typeof(PropertyItem)))
-					property = gameObject.AddComponent(type) as PropertyItem;
-			}
-
-			if(property != null)
-				property.ApplyPropertyState(itemState.propertyStates[i]);
-		}
-
-		OnLoaded();
-	}
-
-	public ItemState BuildItemState()
-	{
-		ItemState itemState = new ItemState();
-		itemState.persistent = GetProperty<PersistentItem>();
-		itemState.itemName = Data.name;
-
-		foreach(var kvp in typeToPropertyMap)
-			itemState.propertyStates.Add(kvp.Value.BuildPropertyState());
-
-		return itemState;
 	}
 
 	public virtual void OnDestroy()
 	{
-		OnItemDestroyed(this);
+		if (!Singleton.IsQuitting)
+		{
+			beingDestroyed = true;
+			OnItemDestroyed(this);
+		}
 	}
 
 	private void OnDrawGizmosSelected()

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f85d35b17268c4e81c1ea496b0104c, type: 3}
+  m_Name: WaterTube_ContourData
+  m_EditorClassIdentifier: 
+  offsetStrips:
+  - offsets:
+    - {x: 0.7, y: 0}
+    - {x: 0.75, y: -0.025}
+    - {x: 0.8, y: -0.1}
+    - {x: 0.8, y: -0.5}
+    - {x: 0.5, y: -0.75}
+    - {x: 0, y: -0.85}
+    - {x: -0.5, y: -0.75}
+    - {x: -0.8, y: -0.5}
+    - {x: -0.8, y: -0.1}
+    - {x: -0.75, y: -0.025}
+    - {x: -0.7, y: 0}
+    - {x: 0.7, y: 0}
+    material: {fileID: 0}

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Luckshot.Callbacks;
 using NaughtyAttributes;
 
 public class ItemSensor : MonoBehaviour
@@ -26,7 +25,7 @@ public class ItemSensor : MonoBehaviour
 					Item unsensed = collection[i];
 
 					collection.RemoveAt(i--);
-					OnItemExited.Invoke(unsensed);
+					OnItemExited(unsensed);
 				}
 			}
 
@@ -41,18 +40,54 @@ public class ItemSensor : MonoBehaviour
 
 	private Dictionary<Item, ItemColliderCollection> itemToColliderCollection = new Dictionary<Item, ItemColliderCollection>();
 
+	public ItemColliderCollection GetItemColliderCollection(Item item)
+	{
+		if (itemToColliderCollection.TryGetValue(item, out ItemColliderCollection itemColliderCollection))
+			return itemColliderCollection;
+
+		return null;
+	}
+
 	private List<Collider> collidersToRemove = new List<Collider>();
 
-	public AAction<Item> OnItemEntered = new AAction<Item>();
-	public AAction<Item> OnItemExited = new AAction<Item>();
+	public event System.Action<Item> OnItemEntered = delegate {};
+	public event System.Action<Item> OnItemExited = delegate {};
 
 	[SerializeField]
 	private bool detectTriggers = true;
 
+	private List<Collider> triggerColliders = new List<Collider>();
+	public List<Collider> TriggerColliders => triggerColliders;
+
+	private void Awake()
+	{
+		CacheTriggers();
+	}
+
+	public void CacheTriggers()
+	{
+		triggerColliders.Clear();
+
+		Collider[] colliders = transform.GetComponentsInChildren<Collider>(true);
+		for (int i = 0; i < colliders.Length; i++)
+		{
+			Collider collider = colliders[i];
+
+			if (!collider.isTrigger)
+				continue;
+
+			if (collider.attachedRigidbody != null &&
+				collider.attachedRigidbody.transform != transform)
+				continue;
+
+			triggerColliders.Add(colliders[i]);
+		}
+	}
+
 	private void OnDisable()
 	{
 		for (int i = 0; i < collection.Count; i++)
-			OnItemExited.Invoke(collection[i]);
+			OnItemExited(collection[i]);
 
 		collection.Clear();
 		itemToColliderCollection.Clear();
@@ -105,11 +140,42 @@ public class ItemSensor : MonoBehaviour
 			for (int i = 0; i < collidersToRemove.Count; i++)
 				colliderCollection.colliders.Remove(collidersToRemove[i]);
 
+			if(colliderCollection.colliders.Count == 0)
+			{
+				// Manually check if there's any other overlaps since this check might be happening as colliders are swapped
+				// as is a very common case on the player
+				for(int i = 0; i < item.AllColliders.Count; i++)
+				{
+					Collider itemCol = item.AllColliders[i];
+					if (!colliderCollection.colliders.Contains(itemCol) &&
+						IsColliderValidAndOverlappingSensor(itemCol))
+					{
+						colliderCollection.colliders.Add(itemCol);
+					}
+				}
+			}
+
 			if (colliderCollection.colliders.Count > 0)
 				return;
 		}
 
 		RemoveItem(item);
+	}
+
+	private bool IsColliderValidAndOverlappingSensor(Collider itemCol)
+	{
+		if (itemCol.enabled && itemCol.gameObject.activeInHierarchy &&
+			(detectTriggers || !itemCol.isTrigger))
+		{
+			for (int j = 0; j < triggerColliders.Count; j++)
+			{
+				Collider triggerCol = triggerColliders[j];
+				if (PhysicsUtils.CheckColliderOverlap(itemCol, triggerCol))
+					return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void SensedItem_OnItemDisabled(Item item)
@@ -139,7 +205,7 @@ public class ItemSensor : MonoBehaviour
 		item.OnRigidbodyRemoved += SensedItem_OnRigidbodyRemoved;
 
 		collection.Add(item);
-		OnItemEntered.Invoke(item);
+		OnItemEntered(item);
 	}
 
 	private void RemoveItem(Item item)
@@ -151,7 +217,7 @@ public class ItemSensor : MonoBehaviour
 		item.OnRigidbodyRemoved -= SensedItem_OnRigidbodyRemoved;
 
 		collection.Remove(item);
-		OnItemExited.Invoke(item);
+		OnItemExited(item);
 	}
 
 	private void OnTriggerEnter(Collider other)
@@ -192,7 +258,8 @@ public class ItemSensor : MonoBehaviour
 		{
 			if (itemToColliderCollection.TryGetValue(item, out ItemColliderCollection itemInfo))
 			{
-				if (itemInfo.colliders.Remove(other) &&
+				if(!IsColliderValidAndOverlappingSensor(other) &&
+					itemInfo.colliders.Remove(other) &&
 					itemInfo.colliders.Count == 0)
 				{
 					RemoveItem(item);

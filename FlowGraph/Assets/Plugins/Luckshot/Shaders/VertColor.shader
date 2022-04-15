@@ -1,4 +1,4 @@
-﻿Shader "Custom/Vert Color"
+﻿Shader "Debug/Vert Color"
 {
 	Properties
 	{
@@ -6,7 +6,9 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" "Queue" = "Geometry"}
+		Blend SrcAlpha OneMinusSrcAlpha
+
+		Tags { "RenderType"="Transparent" "Queue" = "Transparent"}
 		LOD 100
 
 		Pass

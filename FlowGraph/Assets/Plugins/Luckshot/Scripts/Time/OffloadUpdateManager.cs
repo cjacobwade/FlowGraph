@@ -16,8 +16,7 @@ public class OffloadUpdateManager : Singleton<OffloadUpdateManager>
 
 		List<List<System.Action>> _updateLists = new List<List<System.Action>>();
 
-		public int NumFrames
-		{ get { return _updateLists.Count; } }
+		public int NumFrames => _updateLists.Count;
 
 		public void Tick(int frame)
 		{
@@ -44,7 +43,7 @@ public class OffloadUpdateManager : Singleton<OffloadUpdateManager>
 			_updateLists[frameWithMinUpdates].Add(update);
 		}
 
-		public void DeregisterUpdate(System.Action update)
+		public void UnregisterUpdate(System.Action update)
 		{
 			for (int i = 0; i < _updateLists.Count; i++)
 			{
@@ -85,13 +84,13 @@ public class OffloadUpdateManager : Singleton<OffloadUpdateManager>
 		offloadSet.RegisterUpdate(update);
 	}
 
-	public void DeregisterUpdate(System.Action update, int gapFrames)
+	public void UnregisterUpdate(System.Action update, int gapFrames)
 	{
 		for(int i = 0; i < _offloadSets.Count; i++)
 		{
 			if(_offloadSets[i].NumFrames == gapFrames)
 			{
-				_offloadSets[i].DeregisterUpdate(update);
+				_offloadSets[i].UnregisterUpdate(update);
 				return;
 			}
 		}

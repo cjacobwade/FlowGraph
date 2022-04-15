@@ -10,11 +10,6 @@ public class ColliderModel : MonoBehaviour
     [SerializeField]
     private GameObject largeColliderRoot = null;
 
-    [SerializeField]
-    private bool countAsWall = true;
-    public bool CountAsWall
-    { get { return countAsWall; } }
-
     private bool useLargeColliders = false;
 
     private void Awake()

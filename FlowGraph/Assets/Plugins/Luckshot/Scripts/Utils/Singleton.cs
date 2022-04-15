@@ -3,6 +3,7 @@
 public class Singleton : MonoBehaviour
 {
 	protected static bool isQuitting = false;
+	public static bool IsQuitting => isQuitting;
 
 	[RuntimeInitializeOnLoadMethod]
 	static void RunOnStart()

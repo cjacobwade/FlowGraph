@@ -49,7 +49,7 @@ namespace NaughtyAttributes.Editor
 					{
 						object value = valuesList[i];
 						values[i] = value;
-						displayOptions[i] = value == null ? "<null>" : value.ToString();
+						displayOptions[i] = value.ToString();
 					}
 
 					// Selected value index
@@ -81,25 +81,13 @@ namespace NaughtyAttributes.Editor
 							index++;
 
 							KeyValuePair<string, object> current = dropdownEnumerator.Current;
-							if (current.Value?.Equals(selectedValue) == true)
+							if (current.Value.Equals(selectedValue))
 							{
 								selectedValueIndex = index;
 							}
 
 							values.Add(current.Value);
-
-							if (current.Key == null)
-							{
-								displayOptions.Add("<null>");
-							}
-							else if (string.IsNullOrWhiteSpace(current.Key))
-							{
-								displayOptions.Add("<empty>");
-							}
-							else
-							{
-								displayOptions.Add(current.Key);
-							}
+							displayOptions.Add(current.Key);
 						}
 					}
 
@@ -169,9 +157,14 @@ namespace NaughtyAttributes.Editor
 		private Type GetElementType(object values)
 		{
 			Type valuesType = values.GetType();
-			Type elementType = ReflectionUtility.GetListElementType(valuesType);
-
-			return elementType;
+			if (valuesType.IsGenericType)
+			{
+				return valuesType.GetGenericArguments()[0];
+			}
+			else
+			{
+				return valuesType.GetElementType();
+			}
 		}
 	}
 }

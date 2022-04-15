@@ -15,10 +15,9 @@ namespace NaughtyAttributes.Editor
 		{
 			EditorGUI.BeginProperty(rect, label, property);
 
-			using (new EditorGUI.DisabledScope(disabled: true))
-			{
-				EditorGUI.PropertyField(rect, property, label, true);
-			}
+			GUI.enabled = false;
+			EditorGUI.PropertyField(rect, property, label, true);
+			GUI.enabled = true;
 
 			EditorGUI.EndProperty();
 		}

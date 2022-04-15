@@ -11,19 +11,18 @@ public class PathCollision : MonoBehaviour
 {
 	[SerializeField, AutoCache]
 	private PathBase path = null;
-	public PathBase Path
-	{ get { return path; } }
+	public PathBase Path => path;
 
 	[SerializeField, OnValueChanged("BuildCollision")]
-	private bool useCapsules = true;
+	private bool isTrigger = false;
 
 	[SerializeField]
 	private SingleLayer colliderLayer = null;
 
-	[SerializeField, ShowIf("useCapsules"), OnValueChanged("BuildCollision")]
+	[SerializeField, OnValueChanged("BuildCollision")]
 	private float capsulesPerUnit = 0.8f;
 
-	[SerializeField, Range(0f, 1f), ShowIf("useCapsules"), OnValueChanged("BuildCollision")]
+	[SerializeField, Range(0f, 1f), OnValueChanged("BuildCollision")]
 	private float fillAmount = 1f;
 	public float FillAmount
 	{ get { return fillAmount; } }
@@ -46,9 +45,8 @@ public class PathCollision : MonoBehaviour
 	}
 
 	[SerializeField, HideInInspector]
-	private List<CapsuleCollider> colliders = new List<CapsuleCollider>();
-	public List<CapsuleCollider> Colliders
-	{ get { return colliders; } }
+	private List<Collider> colliders = new List<Collider>();
+	public List<Collider> Colliders => colliders;
 
 	public System.Action<PathCollision> OnCollisionChanged = delegate { };
 	public System.Action<PathCollision, float> OnFillAmountChanged = delegate { };
@@ -61,7 +59,7 @@ public class PathCollision : MonoBehaviour
 			path = GetComponent<PathBase>();
 		}
 
-		path.OnPathChanged -= Path_OnPathChanged;
+		path.PathChanged -= Path_OnPathChanged;
 	}
 
 	private void Path_OnPathChanged(PathBase inPath)
@@ -69,14 +67,14 @@ public class PathCollision : MonoBehaviour
 		if (path == inPath)
 			BuildCollision();
 		else
-			inPath.OnPathChanged -= Path_OnPathChanged;
+			inPath.PathChanged -= Path_OnPathChanged;
 	}
 
 	[Button("Build Collision")]
 	public void BuildCollision()
 	{
 		if (this == null)
-			path.OnPathChanged -= Path_OnPathChanged;
+			path.PathChanged -= Path_OnPathChanged;
 
 		if (path != null)
 		{
@@ -89,72 +87,45 @@ public class PathCollision : MonoBehaviour
 					DestroyImmediate(capsuleRoot.gameObject);
 			}
 
-			if (useCapsules)
+			capsuleRoot = new GameObject("CapsuleRoot").transform;
+			capsuleRoot.SetParent(transform);
+			capsuleRoot.ResetLocals();
+
+			colliders.Clear();
+
+			int numCapsules = Mathf.CeilToInt(path.GetLength() * capsulesPerUnit);
+			for (int i = 1; i <= numCapsules; i++)
 			{
-				MeshCollider mc = GetComponent<MeshCollider>();
-				if (mc != null)
-				{
-					if (Application.IsPlaying(this))
-						Destroy(mc);
-					else
-						DestroyImmediate(mc);
-				}
+				float prevAlpha = (i - 1) / (float)numCapsules;
+				float alpha = i / (float)numCapsules;
 
-				capsuleRoot = new GameObject("CapsuleRoot").transform;
-				capsuleRoot.SetParent(transform);
-				capsuleRoot.ResetLocals();
+				Vector3 prevPos = path.GetPoint(prevAlpha);
+				Vector3 pos = path.GetPoint(alpha);
 
-				colliders.Clear();
+				GameObject capsuleGo = new GameObject("CapsuleCollider", typeof(CapsuleCollider));
 
-				int numCapsules = Mathf.CeilToInt(path.GetLength() * capsulesPerUnit);
-				for (int i = 1; i <= numCapsules; i++)
-				{
-					float prevAlpha = (i - 1) / (float)numCapsules;
-					float alpha = i / (float)numCapsules;
+				CapsuleCollider capsule = capsuleGo.GetComponent<CapsuleCollider>();
+				capsule.transform.SetParent(capsuleRoot);
+				capsule.transform.position = (prevPos + pos) / 2f;
 
-					Vector3 prevPos = path.GetPoint(prevAlpha);
-					Vector3 pos = path.GetPoint(alpha);
+				Vector3 lookDir = pos - prevPos;
+				if (lookDir != Vector3.zero)
+					capsule.transform.forward = lookDir.normalized;
 
-					GameObject capsuleGo = new GameObject("CapsuleCollider", typeof(CapsuleCollider));
+				capsule.direction = 2; // Z
 
-					CapsuleCollider capsule = capsuleGo.GetComponent<CapsuleCollider>();
-					capsule.transform.SetParent(capsuleRoot);
-					capsule.transform.position = (prevPos + pos) / 2f;
+				float prevThickness = thicknessCurve.Evaluate(prevAlpha);
+				float thickness = thicknessCurve.Evaluate(alpha);
 
-					Vector3 lookDir = pos - prevPos;
-					if (lookDir != Vector3.zero)
-						capsule.transform.forward = lookDir.normalized;
+				capsule.radius = path.Radius * (prevThickness + thickness)/2f;
+				capsule.height = (pos - prevPos).magnitude + capsule.radius;
+				capsule.isTrigger = isTrigger;
+				capsule.gameObject.layer = colliderLayer.layer;
 
-					capsule.direction = 2; // Z
-
-					float prevThickness = thicknessCurve.Evaluate(prevAlpha);
-					float thickness = thicknessCurve.Evaluate(alpha);
-
-					capsule.radius = path.Radius * (prevThickness + thickness)/2f;
-					capsule.height = (pos - prevPos).magnitude + capsule.radius;
-					capsule.isTrigger = false;
-					capsule.gameObject.layer = colliderLayer.layer;
-
-					colliders.Add(capsule);
-				}
-
-				RefreshActiveColliders();
+				colliders.Add(capsule);
 			}
-			else
-			{
-				MeshFilter mf = GetComponent<MeshFilter>();
-				if (mf == null)
-					mf = path.GetComponent<MeshFilter>();
 
-				if (mf != null)
-				{
-					MeshCollider mc = mf.gameObject.GetComponent<MeshCollider>();
-					if(mc == null)
-						mc = mf.gameObject.AddComponent<MeshCollider>();
-
-					mc.sharedMesh = mf.sharedMesh;
-				}
-			}
+			RefreshActiveColliders();
 
 #if UNITY_EDITOR
 			EditorUtility.SetDirty(this);
@@ -168,7 +139,7 @@ public class PathCollision : MonoBehaviour
 		for (int i = 1; i < colliders.Count; i++)
 		{
 			float prevAlpha = (i + 1) / (float)colliders.Count;
-			colliders[i].gameObject.SetActive(prevAlpha < fillAmount);
+			colliders[i].gameObject.SetActive(prevAlpha <= fillAmount);
 		}
 	}
 
@@ -176,8 +147,8 @@ public class PathCollision : MonoBehaviour
 	{
 		if(path != null)
 		{
-			path.OnPathChanged -= Path_OnPathChanged;
-			path.OnPathChanged += Path_OnPathChanged;
+			path.PathChanged -= Path_OnPathChanged;
+			path.PathChanged += Path_OnPathChanged;
 		}
 	}
 }

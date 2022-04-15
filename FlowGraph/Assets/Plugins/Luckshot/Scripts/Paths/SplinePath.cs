@@ -1,67 +1,115 @@
 ﻿using UnityEngine;
 using System;
 using UnityEngine.Serialization;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Luckshot.Paths
 {
 	public class SplinePath : PathBase
 	{
-		[SerializeField, HideInInspector]
-		private Vector3[] points = null;
-		public Vector3[] Points
+		// Conceptually:
+
+		// Spline is a series of bezier curves each being
+
+		// CurveStart
+		// CurveGuide1
+		// CurveGuide2
+		// CurveEnd
+
+		// Additional each CurveStart/End has an associated normal
+		// which helps in calculating better normals along spline
+		
+		// With multiple curves the end of a preceding curve is the start of the next
+
+		// Implementation:
+
+		// CurveStarts/Ends and Guides are contained in a collection of points
+		// these points are exposed for runtime adjustment
+
+		// Some properties can check for number of curves or curve end/startpoints
+		// and those need to be calculated based on points collection
+		
+		// CurveStart/End associated normals are stored in a separate, shorter collection
+
+		//[SerializeField, HideInInspector]
+		[SerializeField]
+		private List<Vector3> points = new List<Vector3>();
+		public List<Vector3> Points
 		{
 			get
 			{
-				if (points == null || points.Length == 0)
-					Reset();
-
+				if (points.Count == 0) Reset();
 				return points;
 			}
 		}
 
-		[SerializeField, HideInInspector]
-		private Vector3[] normals = null;
-		public Vector3[] Normals
+		//[SerializeField, HideInInspector]
+		[SerializeField]
+		private List<Vector3> normals = new List<Vector3>();
+		public List<Vector3> Normals
 		{
 			get
 			{
-				if (normals == null || normals.Length == 0)
-					Reset();
+				if (normals.Count == 0 || normals.Count != ControlCount)
+				{
+					if(points.Count != 0)
+					{
+						// try to match with existing points
+						normals.Clear();
 
+						while (normals.Count < ControlCount)
+						{
+							int controlIndex = normals.Count * 3;
+							Vector3 control = points[controlIndex];
+
+							int guideIndex = controlIndex + 1;
+							if (guideIndex >= PointCount)
+								guideIndex = controlIndex - 1;
+
+							Vector3 control2 = points[guideIndex];
+							Vector3 toControl2 = (control2 - control).normalized;
+
+							Vector3 right = Vector3.Cross(Vector3.up, toControl2).normalized;
+							Vector3 normal = Vector3.Cross(toControl2, right).normalized;
+							normals.Add(normal);
+						}
+					}
+				}
 				return normals;
 			}
 		}
 
-		[SerializeField, HideInInspector]
-		private BezierControlPointMode[] modes = null;
-		protected BezierControlPointMode[] Modes
+		[SerializeField]
+		private List<Vector2> scalars = new List<Vector2>();
+		public List<Vector2> Scalars
 		{
 			get
 			{
-				if (modes == null || modes.Length == 0)
-					Reset();
+				if (scalars.Count == 0 || scalars.Count != ControlCount)
+				{
+					if (points.Count != 0)
+					{
+						// try to match with existing points
+						scalars.Clear();
 
-				return modes;
+						while (scalars.Count < ControlCount)
+							scalars.Add(Vector2.one);
+					}
+				}
+				return scalars;
 			}
 		}
 
-		public int ModeCount
-		{ get { return Modes.Length; } }
+		public int PointCount => Points.Count;
 
-		public int ControlPointCount
-		{ get { return Points.Length; } }
+		public int ControlCount => (Points.Count / 3) + 1;
 
-		public Vector3 GetControlPointLocal(int index)
-		{ return Points[index]; }
+		public int CurveCount => Points.Count / 3;
 
-		public Vector3 GetControlPoint(int index)
-		{ return transform.TransformPoint(Points[index]); }
+		public Vector3 GetControlPointLocal(int index) => points[index];
 
-		public Vector3 GetControlNormalLocal(int index)
-		{ return Normals[index]; }
-
-		public Vector3 GetControlNormal(int index)
-		{ return transform.TransformDirection(Normals[index]); }
+		public Vector3 GetControlPoint(int index) => transform.TransformPoint(points[index]);
 
 		public void SetControlPoint(int index, Vector3 point, bool moveGuides = false)
 		{ SetControlPointLocal(index, transform.InverseTransformPoint(point), moveGuides); }
@@ -70,134 +118,167 @@ namespace Luckshot.Paths
 		{
 			if (index % 3 == 0 && moveGuides)
 			{
-				Vector3 delta = point - Points[index];
+				Vector3 delta = point - points[index];
 				if (loop)
 				{
 					if (index == 0)
 					{
-						Points[1] += delta;
-						Points[Points.Length - 2] += delta;
-						Points[Points.Length - 1] = point;
+						points[1] += delta;
+						points[Points.Count - 2] += delta;
+						points[Points.Count - 1] = point;
 					}
-					else if (index == Points.Length - 1)
+					else if (index == Points.Count - 1)
 					{
-						Points[0] = point;
-						Points[1] += delta;
-						Points[index - 1] += delta;
+						points[0] = point;
+						points[1] += delta;
+						points[index - 1] += delta;
 					}
 					else
 					{
-						Points[index - 1] += delta;
-						Points[index + 1] += delta;
+						points[index - 1] += delta;
+						points[index + 1] += delta;
 					}
 				}
 				else
 				{
 					if (index > 0)
 					{
-						Points[index - 1] += delta;
+						points[index - 1] += delta;
 					}
-					if (index + 1 < Points.Length)
+					if (index + 1 < Points.Count)
 					{
-						Points[index + 1] += delta;
+						points[index + 1] += delta;
 					}
 				}
 			}
 
-			Points[index] = point;
-			EnforceMode(index);
+			points[index] = point;
+			EnforceAlignment(index);
 
-			OnPathChanged(this);
+			NotifyChanged();
 		}
 
-		public BezierControlPointMode GetControlPointMode(int index)
-		{ return Modes[(index + 1) / 3]; }
+		public void CalculateNormals()
+        {
+			for (int i = 0; i < 3; i++)
+			{
+				float alpha = i / 2f;
 
-		public void SetControlPointMode(int index, BezierControlPointMode mode)
+				Vector3 direction = GetDirection(alpha);
+				Vector3 normal = Vector3.Cross(direction, transform.right).normalized;
+
+				SetControlNormal(i, normal);
+			}
+		}
+
+		public Vector3 GetControlNormal(int controlIndex) => transform.TransformDirection(normals[controlIndex]);
+
+		public Vector3 GetControlNormalLocal(int controlIndex) => normals[controlIndex];
+
+		public void SetControlNormal(int controlIndex, Vector3 normal)
+		{ SetControlNormalLocal(controlIndex, transform.InverseTransformDirection(normal)); }
+
+		public void SetControlNormalLocal(int controlIndex, Vector3 normal)
 		{
-			int modeIndex = (index + 1) / 3;
-			Modes[modeIndex] = mode;
+			normals[controlIndex] = normal;
+
+			if(loop)
+			{
+				if(controlIndex == 0)
+				{
+					normals[normals.Count - 1] = normal;
+				}
+				else if(controlIndex == normals.Count - 1)
+				{
+					normals[0] = normal;
+				}
+			}
+
+			NotifyChanged();
+		}
+
+		public void SetControlScalar(int controlIndex, Vector2 scalar)
+        {
+			scalars[controlIndex] = scalar;
+
 			if (loop)
 			{
-				if (modeIndex == 0)
+				if (controlIndex == 0)
 				{
-					Modes[Modes.Length - 1] = mode;
+					scalars[scalars.Count - 1] = scalar;
 				}
-				else if (modeIndex == Modes.Length - 1)
+				else if (controlIndex == scalars.Count - 1)
 				{
-					Modes[0] = mode;
+					scalars[0] = scalar;
 				}
 			}
 
-			EnforceMode(index);
+			NotifyChanged();
 		}
 
-		private void EnforceMode(int index)
+		public void EnforceAlignment(int index)
 		{
-			int modeIndex = (index + 1) / 3; // What the hell is this doing? Every xth point has a specific control mode
-			BezierControlPointMode mode = Modes[modeIndex];
-			if (mode == BezierControlPointMode.Free || !loop && (modeIndex == 0 || modeIndex == Modes.Length - 1))
-			{
+			int controlIndex = (index + 1) / 3;
+			if (!loop && (controlIndex == 0 || controlIndex == ControlCount - 1))
 				return;
-			}
 
-			int middleIndex = modeIndex * 3;
+			int middleIndex = controlIndex * 3;
 			int fixedIndex, enforcedIndex;
 			if (index <= middleIndex)
 			{
 				fixedIndex = middleIndex - 1;
 				if (fixedIndex < 0)
-				{
-					fixedIndex = Points.Length - 2;
-				}
+					fixedIndex = Points.Count - 2;
+
 				enforcedIndex = middleIndex + 1;
-				if (enforcedIndex >= Points.Length)
-				{
+				if (enforcedIndex >= Points.Count)
 					enforcedIndex = 1;
-				}
 			}
 			else
 			{
 				fixedIndex = middleIndex + 1;
-				if (fixedIndex >= Points.Length)
-				{
+				if (fixedIndex >= Points.Count)
 					fixedIndex = 1;
-				}
+
 				enforcedIndex = middleIndex - 1;
 				if (enforcedIndex < 0)
-				{
-					enforcedIndex = Points.Length - 2;
-				}
+					enforcedIndex = Points.Count - 2;
 			}
 
-			Vector3 middle = Points[middleIndex];
-			Vector3 enforcedTangent = middle - Points[fixedIndex];
-			if (mode == BezierControlPointMode.Aligned)
-			{
-				enforcedTangent = enforcedTangent.normalized * Vector3.Distance(middle, Points[enforcedIndex]);
-			}
+			Vector3 middle = points[middleIndex];
+			Vector3 enforcedTangent = middle - points[fixedIndex];
 
 			Vector3 newPoint = middle + enforcedTangent;
-			if (Points[enforcedIndex] != newPoint)
+			if (points[enforcedIndex] != newPoint)
 			{
-				Points[enforcedIndex] = middle + enforcedTangent;
-				OnPathChanged(this);
+				points[enforcedIndex] = middle + enforcedTangent;
+
+				float alpha = controlIndex / (float)(ControlCount - 1);
+				if (controlIndex == 0 || float.IsNaN(alpha))
+					alpha = 0f;
+
+				Vector3 up = GetControlNormal(controlIndex);
+				Vector3 forward = GetDirection(alpha);
+
+				Vector3 right = Vector3.Cross(up, forward).normalized;
+				up = Vector3.Cross(forward, right).normalized;
+
+				SetControlNormal(controlIndex, up);
+
+				NotifyChanged();
 			}
 		}
 
-		public int CurveCount
-		{ get { return (Points.Length - 1) / 3; } }
-
 		public override Vector3 GetPoint(float t)
 		{
-			if (Points.Length < 4)
+			if (Points.Count < 4)
 				return Vector3.zero;
 
 			int i;
 			if (t >= 1f)
 			{
 				t = 1f;
-				i = Points.Length - 4;
+				i = PointCount - 4;
 			}
 			else
 			{
@@ -206,7 +287,7 @@ namespace Luckshot.Paths
 				t -= i;
 				i *= 3;
 			}
-			return transform.TransformPoint(BezierUtils.GetPoint(Points[i], Points[i + 1], Points[i + 2], Points[i + 3], t));
+			return transform.TransformPoint(BezierUtils.GetPoint(points[i], points[i + 1], points[i + 2], points[i + 3], t));
 		}
 
 		public override float GetNearestAlpha(Vector3 point, int iterations = 10)
@@ -217,7 +298,7 @@ namespace Luckshot.Paths
 
 			// Get a general spot along the spline that our point is near
 			// This is more accurate then immediately halfing
-			int totalIterations = iterations * ControlPointCount;
+			int totalIterations = iterations * Points.Count;
 			for (int i = 0; i < totalIterations; i++)
 			{
 				float iterAlpha = i / (float)totalIterations;
@@ -263,7 +344,7 @@ namespace Luckshot.Paths
 			if (t >= 1f)
 			{
 				t = 1f;
-				i = Points.Length - 4;
+				i = PointCount - 4;
 			}
 			else
 			{
@@ -273,7 +354,7 @@ namespace Luckshot.Paths
 				i *= 3;
 			}
 
-			return transform.TransformPoint(BezierUtils.GetFirstDerivative(Points[i], Points[i + 1], Points[i + 2], Points[i + 3], t)) - transform.position;
+			return transform.TransformPoint(BezierUtils.GetFirstDerivative(points[i], points[i + 1], points[i + 2], points[i + 3], t)) - transform.position;
 		}
 
 		public override Vector3 GetDirection(float t)
@@ -283,67 +364,68 @@ namespace Luckshot.Paths
 		{
 			t = Mathf.Clamp01(t);
 
-			if (NormalType == NormalType.LocalUp)
+			float alphaPerCurve = 1f / (float)CurveCount;
+
+			int nodeA = SafeNodeIndex(Mathf.FloorToInt(t / alphaPerCurve));
+			int nodeB = SafeNodeIndex(nodeA + 1);
+
+			if (!loop && nodeA == CurveCount && nodeB == 0)
 			{
-				Vector3 forward = GetDirection(t);
-				Vector3 right = Vector3.Cross(transform.up, forward).normalized;
-				Vector3 normal = Vector3.Cross(-right, forward).normalized;
-				return normal;
+				nodeA = CurveCount - 1;
+				nodeB = CurveCount;
 			}
-			else
+
+			float remainder = t % alphaPerCurve;
+			float alpha = remainder / alphaPerCurve;
+			if (t == 1f)
+				alpha = 1f;
+			
+			Vector3 normalA = transform.TransformDirection(Normals[nodeA]);
+			Vector3 normalB = transform.TransformDirection(Normals[nodeB]);
+
+			// This normal is always perpendicular but can twist
+			Vector3 forward = GetDirection(t);
+			Vector3 normal = Vector3.Slerp(normalA, normalB, alpha).normalized;
+
+			if (alpha != 0f && alpha != 1f)
 			{
-
-				int numNodes = Points.Length / 3;
-				if (loop)
-					numNodes += 1;
-
-				float alphaPerNode = 1f / (float)numNodes;
-
-				int node = Mathf.FloorToInt(t / alphaPerNode);
-				node = SafeNodeIndex(node);
-
-				int nodeControlIndex = SafeControlPointIndex(node * 3);
-				Vector3 fromNormal = GetControlNormal(nodeControlIndex);
-
-				int nextNode = SafeNodeIndex(node + 1);
-
-				int nextNodeControlIndex = SafeControlPointIndex(nextNode * 3);
-				Vector3 toNormal = GetControlNormal(nextNodeControlIndex);
-
-				float remainder = t % alphaPerNode;
-				float alpha = remainder / alphaPerNode;
-
-				// This normal is not perpendicular to direction but always changes smoothly
-				Vector3 normal = Vector3.Lerp(fromNormal, toNormal, alpha).normalized;
-
-				// This normal is always perpendicular but can twist
-				Vector3 forward = GetDirection(t);
 				Vector3 right = Vector3.Cross(normal, forward).normalized;
 				normal = Vector3.Cross(-right, forward).normalized;
-
-				return normal;
 			}
+
+			return normal;
 		}
 
-		private int SafeNodeIndex(int index)
-		{
-			int numNodes = Points.Length / 3 + 1;
+        public override Vector2 GetScalar(float t)
+        {
+			t = Mathf.Clamp01(t);
 
-			if (loop)
-				index = (int)Mathf.Repeat(index, numNodes);
-			else
-				index = Mathf.Clamp(index, 0, numNodes - 1);
+			float alphaPerCurve = 1f / (float)CurveCount;
 
-			return index;
+			int nodeA = SafeNodeIndex(Mathf.FloorToInt(t / alphaPerCurve));
+			int nodeB = SafeNodeIndex(nodeA + 1);
+
+			if(!loop && nodeA == CurveCount && nodeB == 0)
+			{
+				nodeA = CurveCount - 1;
+				nodeB = CurveCount;
+			}
+
+			float remainder = t % alphaPerCurve;
+			float alpha = remainder / alphaPerCurve;
+			if (t == 1f)
+				alpha = 1f;
+
+			Vector2 thicknessA = Scalars[nodeA];
+			Vector2 thicknessB = Scalars[nodeB];
+
+			Vector2 thickness = Vector2.Lerp(thicknessA, thicknessB, alpha);
+			return thickness;
 		}
 
-		private int SafeControlPointIndex(int index)
+        private int SafeNodeIndex(int index)
 		{
-			if (loop)
-				index = (int)Mathf.Repeat(index, Points.Length);
-			else
-				index = Mathf.Clamp(index, 0, Points.Length - 1);
-
+			index = (int)Mathf.Repeat(index, ControlCount);
 			return index;
 		}
 
@@ -368,74 +450,116 @@ namespace Luckshot.Paths
 			return dist;
 		}
 
-		public virtual void AddCurve()
+		public void AddControl()
 		{
-			Vector3 point = Points[Points.Length - 1];
-			Array.Resize(ref points, Points.Length + 3);
-			point.x += 1f;
-			Points[Points.Length - 3] = point;
-			point.x += 1f;
-			Points[Points.Length - 2] = point;
-			point.x += 1f;
-			Points[Points.Length - 1] = point;
+			Vector3 forward = GetDirection(1f);
+			Vector3 normal = GetNormal(1f);
+			Vector3 end = GetPoint(1f);
 
-			Vector3 normal = Normals[Normals.Length - 1];
-			Array.Resize(ref normals, Normals.Length + 3);
-			Normals[Normals.Length - 3] = normal;
-			Normals[Normals.Length - 2] = normal;
-			Normals[Normals.Length - 1] = normal;
+			Vector3 guide = end + forward * 0.5f;
+			Vector3 guide2 = end + forward * 1.5f;
+			Vector3 end2 = end + forward * 2f;
 
-			Array.Resize(ref modes, Modes.Length + 1);
-			Modes[Modes.Length - 1] = BezierControlPointMode.Mirrored;
-			EnforceMode(Points.Length - 4);
+			points.Add(transform.InverseTransformPoint(guide));
+			points.Add(transform.InverseTransformPoint(guide2));
+			points.Add(transform.InverseTransformPoint(end2));
+
+			normals.Add(normal);
+			scalars.Add(Vector2.one);
+
+			EnforceAlignment(PointCount - 1);
+			EnforceAlignment(PointCount - 3);
 
 			if (loop)
 			{
-				Points[Points.Length - 1] = Points[0];
-				Normals[Normals.Length - 1] = Normals[0];
-				Modes[Modes.Length - 1] = Modes[0];
-				EnforceMode(0);
+				points[PointCount - 1] = points[0];
+				EnforceAlignment(0);
 			}
+
+			NotifyChanged();
 		}
 
-		public virtual void RemoveCurve()
+		public void RemoveControl()
+		{ RemoveControl(ControlCount - 1); }
+
+		public virtual void InsertControl(int controlIndex, Vector3 point)
 		{
-			Array.Resize(ref points, Points.Length - 3);
-			Array.Resize(ref normals, Normals.Length - 3);
-			Array.Resize(ref modes, Modes.Length - 1);
+			float alpha = controlIndex / (float)(ControlCount - 1);
+			if (controlIndex == 0 || float.IsNaN(alpha))
+				alpha = 1f / ControlCount / 2f;
+
+			float alphaOffset = 1f / ControlCount * 0.3f;
+
+			Vector3 prev = GetPoint(alpha - alphaOffset);
+			Vector3 next = GetPoint(alpha + alphaOffset);
+			Vector3 normal = GetNormal(alpha);
+
+			int insertIndex = controlIndex * 3 + 2;
+
+			points.Insert(insertIndex, transform.InverseTransformPoint(prev));
+			points.Insert(insertIndex + 1, transform.InverseTransformPoint(point));
+			points.Insert(insertIndex + 2, transform.InverseTransformPoint(next));
+
+			normals.Insert(controlIndex, normal);
+			scalars.Insert(controlIndex, Vector2.one);
+
+			EnforceAlignment(insertIndex);
+			EnforceAlignment(insertIndex + 2);
 
 			if (loop)
 			{
-				Points[Points.Length - 1] = Points[0];
-				Normals[Normals.Length - 1] = Normals[0];
-				Modes[Modes.Length - 1] = Modes[0];
-				EnforceMode(0);
+				points[PointCount - 1] = points[0];
+				EnforceAlignment(0);
 			}
+
+			NotifyChanged();
+		}
+
+		public virtual void RemoveControl(int controlIndex)
+		{
+			if (CurveCount > 1)
+			{
+				int startIndex = controlIndex * 3 - 1;
+
+				if (controlIndex == 0)
+					startIndex = 0;
+				else if (controlIndex == ControlCount - 1)
+					startIndex -= 1;
+
+				points.RemoveRange(startIndex, 3);
+				normals.RemoveAt(controlIndex);
+				scalars.RemoveAt(controlIndex);
+
+				if(startIndex >= 0)
+					EnforceAlignment(startIndex - 1);
+
+				if (loop)
+				{
+					points[PointCount - 1] = points[0];
+					EnforceAlignment(0);
+				}
+			}
+
+			NotifyChanged();
 		}
 
 		public virtual void Reset()
 		{
-			points = new Vector3[]
-			{
-				new Vector3(1f, 0f, 0f),
-				new Vector3(2f, 0f, 0f),
-				new Vector3(3f, 0f, 0f),
-				new Vector3(4f, 0f, 0f)
-			};
+			points.Clear();
+			points.Add(new Vector3(1f, 0f, 0f));
+			points.Add(new Vector3(2f, 0f, 0f));
+			points.Add(new Vector3(3f, 0f, 0f));
+			points.Add(new Vector3(4f, 0f, 0f));
 
-			normals = new Vector3[]
-			{
-				Vector3.up,
-				Vector3.up,
-				Vector3.up,
-				Vector3.up
-			};
+			normals.Clear();
+			normals.Add(Vector3.up);
+			normals.Add(Vector3.up);
 
-			modes = new BezierControlPointMode[]
-			{
-				BezierControlPointMode.Mirrored,
-				BezierControlPointMode.Mirrored
-			};
+			scalars.Clear();
+			scalars.Add(Vector2.one);
+			scalars.Add(Vector2.one);
+
+            NotifyChanged();
 		}
 	}
 }

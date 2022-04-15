@@ -7,7 +7,8 @@ public struct CollisionSFXPair
 {
 	public PhysicMaterial matA;
 	public PhysicMaterial matB;
-	public AudioClip[] clips;
+	//[FMODUnity.EventRef]
+	public string audioEvent;
 }
 
 [CreateAssetMenu(fileName = "CollisionSFXMatrix", menuName = "Luckshot/CollisionSFXMatrix")]

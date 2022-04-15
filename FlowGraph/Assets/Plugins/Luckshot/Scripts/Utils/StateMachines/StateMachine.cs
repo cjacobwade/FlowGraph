@@ -4,32 +4,37 @@ using UnityEngine;
 
 namespace Luckshot.FSM
 {
-	public abstract class StateMachine
+	[System.Serializable]
+	public class StateMachine
 	{
 		protected MonoBehaviour owner = null;
-		public MonoBehaviour Owner
-		{ get { return owner; } }
+		public MonoBehaviour Owner => owner;
 
 		public StateMachine(MonoBehaviour inOwner)
 		{ owner = inOwner; }
 		
 		private Dictionary<System.Type, StateMachineState> stateMap = new Dictionary<System.Type, StateMachineState>();
 
-		public event System.Action<StateMachine, StateMachineState, StateMachineState> OnStateChanged = delegate { };
+		public delegate void StateChangeEvent(StateMachine stateMachine, StateMachineState from, StateMachineState to);
 
+		public event StateChangeEvent OnStateChanged = delegate { };
+
+		[SerializeField]
 		private StateMachineState currentState = null;
-		public StateMachineState CurrentState
-		{ get { return currentState; } }
+		public StateMachineState CurrentState => currentState;
 
 		public bool IsInState(System.Type type)
 		{ return currentState.GetType() == type; }
+
+		public bool IsInState<T>()
+		{ return currentState.GetType() == typeof(T); }
 
 		public bool InAnyState(params System.Type[] types)
 		{
 			System.Type currentStateType = currentState.GetType();
 			for (int i = 0; i < types.Length; i++)
 			{
-				if (currentStateType.IsAssignableFrom(types[i]))
+				if (types[i].IsAssignableFrom(currentStateType))
 					return true;
 			}
 
@@ -60,6 +65,9 @@ namespace Luckshot.FSM
 
 		public void ChangeState(System.Type type, StateParams stateParams = null)
 		{
+			if (stateParams != null)
+				stateParams.SetStateMachine(this);
+
 			if (stateMap.TryGetValue(type, out StateMachineState nextState))
 			{
 				StateMachineState prevState = currentState;
@@ -84,6 +92,9 @@ namespace Luckshot.FSM
 
 		public void FixedTick()
 		{ currentState.FixedTick(); }
+
+		public void LateTick()
+		{ currentState.LateTick(); }
 
 		public void CollisionEnter(Collision collision)
 		{ currentState.CollisionEnter(collision); }

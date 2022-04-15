@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -11,38 +10,12 @@ namespace NaughtyAttributes.Editor
 {
 	public static class NaughtyEditorGUI
 	{
-		public const float IndentLength = 15.0f;
-		public const float HorizontalSpacing = 2.0f;
-
-		private delegate void PropertyFieldFunction(Rect rect, SerializedProperty property, GUIContent label, bool includeChildren);
-
-		public static void PropertyField(Rect rect, SerializedProperty property, bool includeChildren)
-		{
-			PropertyField_Implementation(rect, property, includeChildren, DrawPropertyField);
-		}
-
 		public static void PropertyField_Layout(SerializedProperty property, bool includeChildren)
-		{
-			Rect dummyRect = new Rect();
-			PropertyField_Implementation(dummyRect, property, includeChildren, DrawPropertyField_Layout);
-		}
-
-		private static void DrawPropertyField(Rect rect, SerializedProperty property, GUIContent label, bool includeChildren)
-		{
-			EditorGUI.PropertyField(rect, property, label, includeChildren);
-		}
-
-		private static void DrawPropertyField_Layout(Rect rect, SerializedProperty property, GUIContent label, bool includeChildren)
-		{
-			EditorGUILayout.PropertyField(property, label, includeChildren);
-		}
-
-		private static void PropertyField_Implementation(Rect rect, SerializedProperty property, bool includeChildren, PropertyFieldFunction propertyFieldFunction)
 		{
 			SpecialCaseDrawerAttribute specialCaseAttribute = PropertyUtility.GetAttribute<SpecialCaseDrawerAttribute>(property);
 			if (specialCaseAttribute != null)
 			{
-				specialCaseAttribute.GetDrawer().OnGUI(rect, property);
+				specialCaseAttribute.GetDrawer().OnGUI(property);
 			}
 			else
 			{
@@ -71,11 +44,9 @@ namespace NaughtyAttributes.Editor
 					// Check if enabled and draw
 					EditorGUI.BeginChangeCheck();
 					bool enabled = PropertyUtility.IsEnabled(property);
-
-					using (new EditorGUI.DisabledScope(disabled: !enabled))
-					{
-						propertyFieldFunction.Invoke(rect, property, label, includeChildren);
-					}
+					GUI.enabled = enabled;
+					EditorGUILayout.PropertyField(property, label, includeChildren);
+					GUI.enabled = true;
 
 					// Call OnValueChanged callbacks
 					if (EditorGUI.EndChangeCheck())
@@ -86,7 +57,7 @@ namespace NaughtyAttributes.Editor
 				else
 				{
 					// We don't need to check for enableIfAttribute
-					propertyFieldFunction.Invoke(rect, property, label, includeChildren);
+					EditorGUILayout.PropertyField(property, label, includeChildren);
 				}
 			}
 		}
@@ -144,37 +115,14 @@ namespace NaughtyAttributes.Editor
 
 		public static void Button(UnityEngine.Object target, MethodInfo methodInfo)
 		{
-			bool visible = ButtonUtility.IsVisible(target, methodInfo);
-			if (!visible)
-			{
-				return;
-			}
-
-			if (methodInfo.GetParameters().All(p => p.IsOptional))
+			if (methodInfo.GetParameters().Length == 0)
 			{
 				ButtonAttribute buttonAttribute = (ButtonAttribute)methodInfo.GetCustomAttributes(typeof(ButtonAttribute), true)[0];
-				string buttonText = string.IsNullOrEmpty(buttonAttribute.Text) ? ObjectNames.NicifyVariableName(methodInfo.Name) : buttonAttribute.Text;
-
-				bool buttonEnabled = ButtonUtility.IsEnabled(target, methodInfo);
-
-				EButtonEnableMode mode = buttonAttribute.SelectedEnableMode;
-				buttonEnabled &=
-					mode == EButtonEnableMode.Always ||
-					mode == EButtonEnableMode.Editor && !Application.isPlaying ||
-					mode == EButtonEnableMode.Playmode && Application.isPlaying;
-
-				bool methodIsCoroutine = methodInfo.ReturnType == typeof(IEnumerator);
-				if (methodIsCoroutine)
-				{
-					buttonEnabled &= (Application.isPlaying ? true : false);
-				}
-
-				EditorGUI.BeginDisabledGroup(!buttonEnabled);
+				string buttonText = string.IsNullOrEmpty(buttonAttribute.Text) ? methodInfo.Name : buttonAttribute.Text;
 
 				if (GUILayout.Button(buttonText))
 				{
-					object[] defaultParams = methodInfo.GetParameters().Select(p => p.DefaultValue).ToArray();
-					IEnumerator methodResult = methodInfo.Invoke(target, defaultParams) as IEnumerator;
+					methodInfo.Invoke(target, null);
 
 					if (!Application.isPlaying)
 					{
@@ -193,13 +141,7 @@ namespace NaughtyAttributes.Editor
 							EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 						}
 					}
-					else if (methodResult != null && target is MonoBehaviour behaviour)
-					{
-						behaviour.StartCoroutine(methodResult);
-					}
 				}
-
-				EditorGUI.EndDisabledGroup();
 			}
 			else
 			{
@@ -268,78 +210,75 @@ namespace NaughtyAttributes.Editor
 
 		public static bool Field_Layout(object value, string label)
 		{
-			using (new EditorGUI.DisabledScope(disabled: true))
+			GUI.enabled = false;
+
+			bool isDrawn = true;
+			Type valueType = value.GetType();
+
+			if (valueType == typeof(bool))
 			{
-				bool isDrawn = true;
-				Type valueType = value.GetType();
-
-				if (valueType == typeof(bool))
-				{
-					EditorGUILayout.Toggle(label, (bool)value);
-				}
-				else if (valueType == typeof(int))
-				{
-					EditorGUILayout.IntField(label, (int)value);
-				}
-				else if (valueType == typeof(long))
-				{
-					EditorGUILayout.LongField(label, (long)value);
-				}
-				else if (valueType == typeof(float))
-				{
-					EditorGUILayout.FloatField(label, (float)value);
-				}
-				else if (valueType == typeof(double))
-				{
-					EditorGUILayout.DoubleField(label, (double)value);
-				}
-				else if (valueType == typeof(string))
-				{
-					EditorGUILayout.TextField(label, (string)value);
-				}
-				else if (valueType == typeof(Vector2))
-				{
-					EditorGUILayout.Vector2Field(label, (Vector2)value);
-				}
-				else if (valueType == typeof(Vector3))
-				{
-					EditorGUILayout.Vector3Field(label, (Vector3)value);
-				}
-				else if (valueType == typeof(Vector4))
-				{
-					EditorGUILayout.Vector4Field(label, (Vector4)value);
-				}
-				else if (valueType == typeof(Color))
-				{
-					EditorGUILayout.ColorField(label, (Color)value);
-				}
-				else if (valueType == typeof(Bounds))
-				{
-					EditorGUILayout.BoundsField(label, (Bounds)value);
-				}
-				else if (valueType == typeof(Rect))
-				{
-					EditorGUILayout.RectField(label, (Rect)value);
-				}
-				else if (typeof(UnityEngine.Object).IsAssignableFrom(valueType))
-				{
-					EditorGUILayout.ObjectField(label, (UnityEngine.Object)value, valueType, true);
-				}
-				else if (valueType.BaseType == typeof(Enum))
-				{
-					EditorGUILayout.EnumPopup(label, (Enum)value);
-				}
-				else if (valueType.BaseType == typeof(System.Reflection.TypeInfo))
-				{
-					EditorGUILayout.TextField(label, value.ToString());
-				}
-				else
-				{
-					isDrawn = false;
-				}
-
-				return isDrawn;
+				EditorGUILayout.Toggle(label, (bool)value);
 			}
+			else if (valueType == typeof(int))
+			{
+				EditorGUILayout.IntField(label, (int)value);
+			}
+			else if (valueType == typeof(long))
+			{
+				EditorGUILayout.LongField(label, (long)value);
+			}
+			else if (valueType == typeof(float))
+			{
+				EditorGUILayout.FloatField(label, (float)value);
+			}
+			else if (valueType == typeof(double))
+			{
+				EditorGUILayout.DoubleField(label, (double)value);
+			}
+			else if (valueType == typeof(string))
+			{
+				EditorGUILayout.TextField(label, (string)value);
+			}
+			else if (valueType == typeof(Vector2))
+			{
+				EditorGUILayout.Vector2Field(label, (Vector2)value);
+			}
+			else if (valueType == typeof(Vector3))
+			{
+				EditorGUILayout.Vector3Field(label, (Vector3)value);
+			}
+			else if (valueType == typeof(Vector4))
+			{
+				EditorGUILayout.Vector4Field(label, (Vector4)value);
+			}
+			else if (valueType == typeof(Color))
+			{
+				EditorGUILayout.ColorField(label, (Color)value);
+			}
+			else if (valueType == typeof(Bounds))
+			{
+				EditorGUILayout.BoundsField(label, (Bounds)value);
+			}
+			else if (valueType == typeof(Rect))
+			{
+				EditorGUILayout.RectField(label, (Rect)value);
+			}
+			else if (typeof(UnityEngine.Object).IsAssignableFrom(valueType))
+			{
+				EditorGUILayout.ObjectField(label, (UnityEngine.Object)value, valueType, true);
+			}
+			else if (valueType.BaseType == typeof(Enum))
+			{
+				EditorGUILayout.EnumPopup(label, (Enum)value);
+			}
+			else
+			{
+				isDrawn = false;
+			}
+
+			GUI.enabled = true;
+
+			return isDrawn;
 		}
 
 		private static void DebugLogMessage(string message, MessageType type, UnityEngine.Object context)

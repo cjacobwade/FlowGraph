@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64fc4464dbaa4e34890c6d7b29f9b856, type: 3}
+  m_Name: MeshProcessorData_DisplacementTex_DesertRocks
+  m_EditorClassIdentifier: 
+  displaceTex: {fileID: 2800000, guid: 15f68c872b202cf4a822b96f966e5dd0, type: 3}
+  strength: 1

@@ -1,7 +1,18 @@
-﻿using System.Collections;
+﻿#define LUCKSHOT
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+
+public enum ResetType
+{
+	Position = 1 << 0,
+	Rotation = 1 << 1,
+	Scale = 1 << 2,
+	PositionRotation = Position | Rotation,
+	All = Position | Rotation | Scale
+}
 
 public static class LuckshotMath
 {
@@ -101,6 +112,10 @@ public static class LuckshotMath
 	}
 
 	// TRANSFORMS
+
+	public static PoseInfo GetPose(this Transform transform)
+	{ return new PoseInfo(transform.position, transform.rotation); }
+
 	public static void LookAt2D(this Transform transform, Transform target)
 	{ transform.LookAt2D(target.position); }
 
@@ -111,16 +126,28 @@ public static class LuckshotMath
 		transform.rotation = Quaternion.Euler(0f, 0f, lookAngle);
 	}
 
-	public enum ResetType
-	{
-		Position = 1 << 0,
-		Rotation = 1 << 1,
-		Scale = 1 << 2,
-		All = Position | Rotation | Scale
-	}
 
-	public static void ZeroOut(this Transform transform, ResetType inResetType = ResetType.All)
-	{ ResetLocals(transform, inResetType); }
+	public static Transform FindRecursive(this Transform transform, string name)
+	{
+		if (transform == null)
+			return null;
+
+		if (transform.name == name)
+			return transform;
+
+		Transform result = transform.Find(name);
+		if (result != null)
+			return result;
+
+		foreach (Transform child in transform)
+		{
+			result = child.FindRecursive(name);
+			if (result != null)
+				return result;
+		}
+
+		return result;
+	}
 
 	public static void ResetLocals(this Transform transform, ResetType inResetType = ResetType.All)
 	{
@@ -616,6 +643,24 @@ public static class LuckshotMath
 		return new Bounds { center = center, extents = extents };
 	}
 
+
+	public static Vector3 GetWorldDirection(Axis axis)
+	{
+		switch (axis)
+		{
+			case Axis.X:
+				return Vector3.right;
+			case Axis.Y:
+				return Vector3.up;
+			case Axis.Z:
+				return Vector3.forward;
+		}
+
+		return Vector3.zero;
+	}
+
+	public static Vector3 GetWorldDirection(this Transform t, Axis axis)
+	{ return t.TransformDirection(GetWorldDirection(axis)); }
 }
 
 // DATA STRUCTURES
@@ -972,6 +1017,12 @@ public struct PoseInfo
 	{
 		position = inPosition;
 		rotation = inRotation;
+	}
+
+	public void Lerp(PoseInfo a, PoseInfo b, float alpha)
+	{
+		position = Vector3.Lerp(a.position, b.position, alpha);
+		rotation = Quaternion.Slerp(a.rotation, b.rotation, alpha);
 	}
 }
 

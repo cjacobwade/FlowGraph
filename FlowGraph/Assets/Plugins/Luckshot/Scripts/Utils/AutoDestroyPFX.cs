@@ -3,19 +3,19 @@ using System.Collections;
 
 public class AutoDestroyPFX : MonoBehaviour
 {
-	[SerializeField, AutoCache(searchChildren = true)]
-	ParticleSystem _ps = null;
-	WaitForSeconds _aliveCheckWait = new WaitForSeconds(1f);
+	[SerializeField, AutoCache(searchChildren = true), UnityEngine.Serialization.FormerlySerializedAs("_ps")]
+	private new ParticleSystem particleSystem = null;
+	private WaitForSeconds aliveCheckWait = new WaitForSeconds(1f);
 
-	void OnEnable()
+	private void OnEnable()
 	{
 		StartCoroutine(WaitForVFXEnd());
 	}
 
-	IEnumerator WaitForVFXEnd()
+	private IEnumerator WaitForVFXEnd()
 	{
-		while (_ps.IsAlive(true))
-			yield return _aliveCheckWait;
+		while (particleSystem.IsAlive(true))
+			yield return aliveCheckWait;
 
 		Destroy(gameObject);
 	}

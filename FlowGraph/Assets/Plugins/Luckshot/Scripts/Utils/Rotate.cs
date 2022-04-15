@@ -4,16 +4,15 @@ using UnityEngine;
 
 public class Rotate : MonoBehaviour
 {
-	[SerializeField]
-	private Vector3 speed = Vector3.zero;
-
-	[SerializeField]
-	private Space space = Space.World;
+	public Vector3 speed = Vector3.zero;
+	public Space space = Space.World;
 
 	[SerializeField]
 	private bool randomizeOnEnable = false;
 
 	private new Rigidbody rigidbody = null;
+
+	public bool ignoreTimeScale = false;
 
 	private void Awake()
 	{
@@ -31,11 +30,11 @@ public class Rotate : MonoBehaviour
 		}
 	}
 
-	private void FixedUpdate()
+	private void Update()
 	{
 		Vector3 appliedSpeed = space == Space.World ? speed : transform.TransformVector(speed);
 		Vector3 axis = appliedSpeed.normalized;
-		float angle = appliedSpeed.magnitude * Time.deltaTime;
+		float angle = appliedSpeed.magnitude * (ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime);
 
 		RotateByAngle(angle, axis);
 	}

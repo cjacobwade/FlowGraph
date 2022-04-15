@@ -30,7 +30,7 @@ public class MeshCopy : MonoBehaviour
 	private Transform meshRoot = null;
 	private Transform colliderRoot = null;
 
-	private List<MeshFilter> copiedMeshFilters = new List<MeshFilter>();
+	private List<Renderer> copiedRenderers = new List<Renderer>();
 	private List<Collider> copiedColliders = new List<Collider>();
 
 	private static MaterialPropertyBlock propertyBlock = null;
@@ -46,6 +46,8 @@ public class MeshCopy : MonoBehaviour
 	{
 		if (root != null)
 		{
+			root.gameObject.SetActive(false);
+
 			if (Application.IsPlaying(this))
 				Destroy(root.gameObject);
 			else
@@ -74,7 +76,7 @@ public class MeshCopy : MonoBehaviour
 		meshRoot.SetParent(root);
 		meshRoot.ResetLocals();
 
-		copiedMeshFilters.Clear();
+		copiedRenderers.Clear();
 
 		Renderer[] renderers = sourceRoot.GetComponentsInChildren<Renderer>();
 		for(int i = 0; i < renderers.Length; i++)
@@ -155,10 +157,10 @@ public class MeshCopy : MonoBehaviour
 
 			copyMR.SetPropertyBlock(propertyBlock);
 
-			copiedMeshFilters.Add(copyMF);
+			copiedRenderers.Add(copyMR);
 		}
 
-		Bounds renderBounds = PhysicsUtils.EncapsulateMeshFilters(copiedMeshFilters, root);
+		Bounds renderBounds = PhysicsUtils.CalculateRenderersBounds(copiedRenderers, root);
 		Vector3 boundsCenter = renderBounds.center;
 		Vector3 boundsSize = renderBounds.size;
 
@@ -236,7 +238,7 @@ public class MeshCopy : MonoBehaviour
 				copiedColliders.Add(copyCollider);
 			}
 
-			Bounds colliderBounds = PhysicsUtils.EncapsulateColliders(copiedColliders, root);
+			Bounds colliderBounds = PhysicsUtils.CalculateCollidersBounds(copiedColliders, root);
 			boundsCenter = Vector3.Max(boundsCenter, colliderBounds.center);
 			boundsSize = Vector3.Max(boundsSize, colliderBounds.size);
 		}

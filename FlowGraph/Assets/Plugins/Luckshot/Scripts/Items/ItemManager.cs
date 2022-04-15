@@ -9,8 +9,7 @@ public class ItemManager : Singleton<ItemManager>
 	private Dictionary<ItemData, Item> dataToPrefabMap = new Dictionary<ItemData, Item>();
 
 	private List<Item> allItems = new List<Item>();
-	public List<Item> AllItems
-	{ get { return allItems; } }
+	public List<Item> AllItems => allItems;
 
 	[SerializeField]
 	private float minItemCleanupHeight = -100f;
@@ -18,6 +17,9 @@ public class ItemManager : Singleton<ItemManager>
 	[SerializeField]
 	private int cleanupChecksPerFrame = 2;
 	private int cleanupCheckIter = 0;
+
+	private Collider[] searchColliders = new Collider[100];
+	private HashSet<Item> searchHitItems = new HashSet<Item>();
 
 	public void RegisterItem(Item item)
 	{
@@ -78,7 +80,8 @@ public class ItemManager : Singleton<ItemManager>
 			Item item = allItems[cleanupCheckIter];
 			if (item.transform.position.y < minItemCleanupHeight)
 			{
-				// TODO: Protect player and other important items??
+				if (item.GetProperty<SafeItem>())
+					return;
 
 				Destroy(item.gameObject);
 				cleanupCheckIter--;
@@ -89,6 +92,54 @@ public class ItemManager : Singleton<ItemManager>
 		}
 	}
 
+	public Item TryFindItemMatchingItemStateDefinition(ItemStateDefinition itemStateDefinition, 
+		Vector3 startPos, float searchRange = 100f, Func<Item, bool> validateFunc = null)
+    { return TryFindItemMatchingStateDefinition(itemStateDefinition, null, startPos, searchRange, validateFunc); }
+
+	public Item TryFindItemMatchingPropertyStateDefinition(PropertyItemStateDefinition propertyStateDefinition,
+		Vector3 startPos, float searchRange = 100f, Func<Item, bool> validateFunc = null)
+	{ return TryFindItemMatchingStateDefinition(null, propertyStateDefinition, startPos, searchRange, validateFunc); }
+
+	private Item TryFindItemMatchingStateDefinition(ItemStateDefinition itemStateDefinition,
+		PropertyItemStateDefinition propertyStateDefinition,
+		Vector3 startPos, float searchRange = 100f,
+		Func<Item, bool> validateFunc = null)
+	{
+		int numHits = Physics.OverlapSphereNonAlloc(startPos, searchRange, searchColliders,
+			1 << Layers.GRABBABLE_INT | 1 << Layers.PLAYER_INT,
+			QueryTriggerInteraction.Collide);
+
+		searchHitItems.Clear();
+
+		for (int i = 0; i < numHits; i++)
+		{
+			if (Item.FindNearestParentItem(searchColliders[i], out Item item))
+				searchHitItems.Add(item);
+		}
+
+		Item nearestItem = null;
+		float nearestDist = Mathf.Infinity;
+
+		foreach (var hitItem in searchHitItems)
+		{
+			float dist = Vector3.Distance(hitItem.Center, startPos);
+			if (dist > nearestDist)
+				continue;
+
+			if (validateFunc != null && !validateFunc(hitItem))
+				continue;
+
+			if ((itemStateDefinition == null || itemStateDefinition.CheckState(hitItem)) &&
+				(propertyStateDefinition == null || propertyStateDefinition.CheckState(hitItem)))
+			{
+				nearestItem = hitItem;
+				nearestDist = dist;
+			}
+		}
+
+		return nearestItem;
+	}
+
 	public Item InstantiateItemFromItemState(ItemState itemState)
 	{
 		ItemData itemData = GetItemDataByName(itemState.itemName);
@@ -97,7 +148,7 @@ public class ItemManager : Singleton<ItemManager>
 			Item itemPrefab = GetItemPrefab(itemData);
 
 			Item item = Instantiate(itemPrefab);
-			item.ApplyItemState(itemState);
+			itemState.ApplyStateToItem(item);
 
 			return item;
 		}

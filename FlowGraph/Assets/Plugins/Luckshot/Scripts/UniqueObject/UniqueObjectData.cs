@@ -9,6 +9,22 @@ using UnityEditor;
 [InlineScriptableObject(path ="Assets/Data/UniqueObjectDatas/", inline = false)]
 public class UniqueObjectData : ScriptableObject
 {
+	[SerializeField]
+	private string displayName = string.Empty;
+	public string DisplayName => displayName;
+
+	[ContextMenu("Set Display Name - Last Underscore")]
+	private void SetDisplayName_LastUnderscore()
+	{
+		displayName = name.Split('_').Last();
+	}
+
+	[ContextMenu("Set Display Name - Full Name")]
+	private void SetDisplayName_RemoveUnderscore()
+	{
+		displayName = name.Replace("_", " ");
+	}
+
 #if UNITY_EDITOR
 	public static UniqueObjectData CreateItemData(string path, string name)
 	{

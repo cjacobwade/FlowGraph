@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f85d35b17268c4e81c1ea496b0104c, type: 3}
+  m_Name: DesertTree_ContourData
+  m_EditorClassIdentifier: 
+  offsetStrips:
+  - offsets:
+    - {x: -1, y: -0.7}
+    - {x: -1, y: 0.7}
+    - {x: -0.7, y: 1}
+    - {x: 0.7, y: 1}
+    - {x: 1, y: 0.7}
+    - {x: 1, y: -0.7}
+    - {x: 0.7, y: -1}
+    - {x: -0.7, y: -1}
+    - {x: -1, y: -0.7}
+    material: {fileID: 2100000, guid: 8e954fa448954d1408d6fe0997f98227, type: 2}

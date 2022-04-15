@@ -9,8 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Test_White
   m_Shader: {fileID: 4800000, guid: 76fe392e09ac8fd4f848a9315c377cf8, type: 3}
-  m_ShaderKeywords: SOLID TCP2_DISABLE_WRAPPED_LIGHT TCP2_OUTLINE_CONST_SIZE TCP2_RIM
-    _ZWRITE_ON
+  m_ShaderKeywords: SOLID USE_VERTEX_COLOR TCP2_DISABLE_WRAPPED_LIGHT TCP2_OUTLINE_CONST_SIZE
+    TCP2_RIM _ZWRITE_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -79,6 +79,7 @@ Material:
     - _RampThreshold: 0.2
     - _RimMax: 1
     - _RimMin: 0.517
+    - _RimSmooth: 0.07
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -100,3 +101,4 @@ Material:
     - _RimColor: {r: 0.4705882, g: 0.4705882, b: 0.4705882, a: 0.335}
     - _RimDir: {r: 0, g: 0, b: 1, a: 0}
     - _SColor: {r: 0.195, g: 0.195, b: 0.195, a: 1}
+  m_BuildTextureStacks: []

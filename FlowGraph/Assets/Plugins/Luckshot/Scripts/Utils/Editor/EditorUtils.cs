@@ -6,9 +6,31 @@ using System.Reflection;
 using System.Linq;
 using System;
 using Object = UnityEngine.Object;
+using System.IO;
 
 public static class EditorUtils
 {
+	public static T[] LoadAllAssetsAtPath<T>(string path) where T : UnityEngine.Object
+	{
+		List<T> tCollection = new List<T>();
+
+		string[] fileEntries = Directory.GetFiles(Application.dataPath + "/" + path);
+		foreach (string fileName in fileEntries)
+		{
+			int index = fileName.LastIndexOf("/");
+			string localPath = "Assets/" + path;
+
+			if (index > 0)
+				localPath += fileName.Substring(index);
+
+			T tObject = AssetDatabase.LoadAssetAtPath<T>(localPath);
+			if (tObject != null)
+				tCollection.Add(tObject);
+		}
+
+		return tCollection.ToArray();
+	}
+
 	public static T CreateOrReplaceAsset<T>(T asset, string path) where T : Object
 	{
 		T existingAsset = AssetDatabase.LoadAssetAtPath<T>(path);
@@ -45,6 +67,15 @@ public static class EditorUtils
 			}
 		}
 		return obj;
+	}
+
+	public static Type GetTypeOfProperty(SerializedProperty prop)
+	{
+		object obj = GetTargetObjectOfProperty(prop);
+		if (obj != null)
+			return obj.GetType();
+
+		return null;
 	}
 
 	public static object SetTargetObjectOfProperty(SerializedProperty prop, object value)

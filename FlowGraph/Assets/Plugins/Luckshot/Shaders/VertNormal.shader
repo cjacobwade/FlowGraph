@@ -1,4 +1,4 @@
-﻿Shader "Custom/Vert Normal"
+﻿Shader "Debug/Vert Normal"
 {
 	Properties
 	{

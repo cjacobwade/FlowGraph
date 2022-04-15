@@ -36,28 +36,48 @@ namespace NaughtyAttributes.Editor
 
 		public static void CallOnValueChangedCallbacks(SerializedProperty property)
 		{
-			OnValueChangedAttribute[] onValueChangedAttributes = GetAttributes<OnValueChangedAttribute>(property);
-			if (onValueChangedAttributes.Length == 0)
-			{
-				return;
-			}
-
 			object target = GetTargetObjectWithProperty(property);
+			FieldInfo fieldInfo = ReflectionUtility.GetField(target, property.name);
+			object oldValue = fieldInfo.GetValue(target);
 			property.serializedObject.ApplyModifiedProperties(); // We must apply modifications so that the new value is updated in the serialized object
+			object newValue = fieldInfo.GetValue(target);
 
+			OnValueChangedAttribute[] onValueChangedAttributes = GetAttributes<OnValueChangedAttribute>(property);
 			foreach (var onValueChangedAttribute in onValueChangedAttributes)
 			{
 				MethodInfo callbackMethod = ReflectionUtility.GetMethod(target, onValueChangedAttribute.CallbackName);
 				if (callbackMethod != null &&
 					callbackMethod.ReturnType == typeof(void) &&
+					callbackMethod.GetParameters().Length == 2)
+				{
+					ParameterInfo oldValueParam = callbackMethod.GetParameters()[0];
+					ParameterInfo newValueParam = callbackMethod.GetParameters()[1];
+
+					if (fieldInfo.FieldType == oldValueParam.ParameterType &&
+						fieldInfo.FieldType == newValueParam.ParameterType)
+					{
+						callbackMethod.Invoke(target, new object[] { oldValue, newValue });
+					}
+					else
+					{
+						string warning = string.Format(
+							"The field '{0}' and the parameters of callback '{1}' must be of the same type." + Environment.NewLine +
+							"Field={2}, Param0={3}, Param1={4}",
+							fieldInfo.Name, callbackMethod.Name, fieldInfo.FieldType, oldValueParam.ParameterType, newValueParam.ParameterType);
+
+						Debug.LogWarning(warning, property.serializedObject.targetObject);
+					}
+				}
+				else if(callbackMethod != null &&
+					callbackMethod.ReturnType == typeof(void) &&
 					callbackMethod.GetParameters().Length == 0)
 				{
-					callbackMethod.Invoke(target, new object[] { });
+					callbackMethod.Invoke(target, new object[] {});
 				}
 				else
 				{
 					string warning = string.Format(
-						"{0} can invoke only methods with 'void' return type and 0 parameters",
+						"{0} can invoke only methods with 'void' return type and 2 parameters of the same type as the field the attribute was put on",
 						onValueChangedAttribute.GetType().Name);
 
 					Debug.LogWarning(warning, property.serializedObject.targetObject);
@@ -115,7 +135,7 @@ namespace NaughtyAttributes.Editor
 			}
 		}
 
-		internal static List<bool> GetConditionValues(object target, string[] conditions)
+		private static List<bool> GetConditionValues(object target, string[] conditions)
 		{
 			List<bool> conditionValues = new List<bool>();
 			foreach (var condition in conditions)
@@ -146,7 +166,7 @@ namespace NaughtyAttributes.Editor
 			return conditionValues;
 		}
 
-		internal static bool GetConditionsFlag(List<bool> conditionValues, EConditionOperator conditionOperator, bool invert)
+		private static bool GetConditionsFlag(List<bool> conditionValues, EConditionOperator conditionOperator, bool invert)
 		{
 			bool flag;
 			if (conditionOperator == EConditionOperator.And)
@@ -172,14 +192,6 @@ namespace NaughtyAttributes.Editor
 			}
 
 			return flag;
-		}
-
-		public static Type GetPropertyType(SerializedProperty property)
-		{
-			Type parentType = GetTargetObjectWithProperty(property).GetType();
-			FieldInfo fieldInfo = parentType.GetField(property.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-			return fieldInfo.FieldType;
 		}
 
 		/// <summary>

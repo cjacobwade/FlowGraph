@@ -3,7 +3,6 @@ using System.Collections;
 
 namespace Luckshot.Platform
 {
-
 	public enum PlatformID
 	{
 		None = 0,
@@ -15,7 +14,7 @@ namespace Luckshot.Platform
 		Switch = 5
 	}
 
-	public partial class PlatformServices : Singleton<PlatformServices>
+	public class PlatformServices : Singleton<PlatformServices>
 	{
 		private Platform currentPlatform = null;
 		public static Platform CurrentPlatform
@@ -29,8 +28,13 @@ namespace Luckshot.Platform
 			return BigHopsPrefs.Instance.FakePlatformID;
 		}
 
+		static readonly int saveVersion = 0;
+
+		public static string GetSaveName()
+		{ return "/hopsave_v" + saveVersion; }
+
 		public static string GetSaveLocation()
-		{ return Application.dataPath + "/save.hop"; }
+		{ return Application.persistentDataPath + GetSaveName() + ".hop"; }
 
 		public Coroutine Initialize()
 		{ return StartCoroutine(InitializeRoutine()); }
@@ -38,24 +42,21 @@ namespace Luckshot.Platform
 		private IEnumerator InitializeRoutine()
 		{
 #if UNITY_EDITOR || UNITY_STANDALONE
-			if (BigHopsPrefs.Instance.FakePlatformID != PlatformID.Steam)
-				currentPlatform = gameObject.AddComponent<DRMFreePlatform>();
-//			else
-//				currentPlatform = gameObject.AddComponent<SteamPlatform>();
+			currentPlatform = gameObject.AddComponent<DRMFreePlatform>();
 #elif UNITY_PS4
-		currentPlatform = gameObject.AddComponent<PSNPlatform>();
+			currentPlatform = gameObject.AddComponent<PSNPlatform>();
 #elif UNITY_SWITCH
-		currentPlatform = gameObject.AddComponent<SwitchPlatform>();
+			currentPlatform = gameObject.AddComponent<SwitchPlatform>();
 #endif
 
 			yield return currentPlatform.Initialize();
 
 			if (BigHopsPrefs.Instance.AutoLoadOnStart)
 			{
-				if (!SaveManager.Instance.Load())
+				if (!SaveManager.Instance.LoadFromDisk())
 				{
-					SaveManager.Instance.Save();
-					SaveManager.Instance.Load();
+					SaveManager.Instance.SaveToDisk();
+					SaveManager.Instance.LoadFromDisk();
 				}
 			}
 		}

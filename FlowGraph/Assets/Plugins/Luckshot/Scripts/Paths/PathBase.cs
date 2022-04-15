@@ -1,16 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using NaughtyAttributes;
 
 namespace Luckshot.Paths
 {
-	public enum NormalType
-	{
-		LocalUp,
-		Perpendicular
-	}
-
 	public abstract class PathBase : MonoBehaviour
 	{
 		public abstract Vector3 GetPoint(float alpha);
@@ -22,30 +15,32 @@ namespace Luckshot.Paths
 		public abstract Vector3 GetVelocity(float alpha);
 		public abstract Vector3 GetNormal(float t);
 
-		[SerializeField, OnValueChanged("ChangePath")]
+		public virtual Vector2 GetScalar(float t)
+		{ return Vector2.one; }
+
+		[SerializeField, HideInInspector]
 		protected bool loop = false;
-		public virtual bool Loop
-		{ get { return loop; } }
+		public virtual bool Loop => loop;
 
-		public void SetLoop(bool inLoop)
-		{ loop = inLoop; }
-
-		[SerializeField, OnValueChanged("ChangePath")]
-		private float radius = 0.1f;
-		public float Radius
-		{ get { return radius * transform.lossyScale.x; } }
-
-		public void SetRadius(float inRadius)
-		{ radius = inRadius; }
+		public void SetLoop(bool loop)
+		{ 
+			this.loop = loop;
+			NotifyChanged();
+		}
 
 		[SerializeField]
-		private NormalType normalType = NormalType.LocalUp;
-		public NormalType NormalType
-		{ get { return normalType; } }
+		private float radius = 1f;
+		public float Radius => radius * transform.lossyScale.x;
 
-		private void ChangePath()
-		{ OnPathChanged(this); }
+		public void SetRadius(float radius)
+		{ 
+			this.radius = radius;
+			NotifyChanged();
+		}
 
-		public System.Action<PathBase> OnPathChanged = delegate {};
+		public void NotifyChanged()
+		{ PathChanged(this); }
+
+		public event System.Action<PathBase> PathChanged = delegate {};
 	}
 }

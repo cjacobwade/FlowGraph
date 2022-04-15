@@ -8,22 +8,11 @@ public class CirclePath : PathBase
 {
 	[SerializeField]
 	private float circleRadius = 1f;
-	public float CircleRadius
-	{ get { return circleRadius; } }
+	public float CircleRadius => circleRadius;
 
 	[SerializeField, Range(0f, 1f)]
 	private float fillAmount = 1f;
-	public float FillAmount
-	{ get { return fillAmount; } }
-
-	public void SetFillAmount(float fillAmount)
-	{
-		if (fillAmount != this.fillAmount)
-		{
-			this.fillAmount = fillAmount;
-			OnPathChanged(this);
-		}
-	}
+	public float FillAmount => fillAmount;
 
 	public override Vector3 GetPoint(float alpha)
 	{
@@ -67,21 +56,11 @@ public class CirclePath : PathBase
 
 	public override Vector3 GetNormal(float t)
 	{
-		if (NormalType == NormalType.LocalUp)
-		{
-			Vector3 forward = GetDirection(t);
-			Vector3 right = Vector3.Cross(transform.up, forward).normalized;
-			Vector3 normal = Vector3.Cross(-right, forward).normalized;
-			return normal;
-		}
-		else
-		{
-			Vector3 point = GetPoint(t);
-			Vector3 normal = (point - transform.position).normalized;
-			return normal;
-		}
+		Vector3 point = GetPoint(t);
+		Vector3 normal = (point - transform.position).normalized;
+		return normal;
 	}
 
 	public override float GetLength()
-	{ return circleRadius * Mathf.PI * 2f; }
+	{ return circleRadius * Mathf.PI * 2f * fillAmount; }
 }

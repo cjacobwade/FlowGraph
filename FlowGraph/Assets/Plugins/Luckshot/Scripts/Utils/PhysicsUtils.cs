@@ -13,7 +13,7 @@ public static class PhysicsUtils
 
 	private static Vector3[] tempCorners = new Vector3[8];
 
-	public static Bounds EncapsulateColliders(IEnumerable<Collider> colliders, Transform relativeTransform = null)
+	public static Bounds CalculateCollidersBounds(IEnumerable<Collider> colliders, Transform relativeTransform = null)
 	{
 		Bounds bounds = new Bounds();
 		bounds.center = Vector3.zero;
@@ -21,7 +21,7 @@ public static class PhysicsUtils
 
 		bool setupCenter = false;
 		bool hasRelativeTransform = relativeTransform != null;
-
+		
 		foreach (var collider in colliders)
 		{
 			if (collider.isTrigger || !collider.enabled || 
@@ -116,6 +116,12 @@ public static class PhysicsUtils
 
 			if (hasRelativeTransform)
 			{
+				if (!setupCenter)
+				{
+					bounds.center = relativeTransform.InverseTransformPoint(center);
+					setupCenter = true;
+				}
+
 				for (int i = 0; i < tempCorners.Length; i++)
 					bounds.Encapsulate(relativeTransform.InverseTransformPoint(tempCorners[i]));
 			}
@@ -123,7 +129,7 @@ public static class PhysicsUtils
 			{
 				if (!setupCenter)
 				{
-					bounds.center = tempCorners[0];
+					bounds.center = center;
 					setupCenter = true;
 				}
 
@@ -135,23 +141,32 @@ public static class PhysicsUtils
 		return bounds;
 	}
 
-	public static Bounds EncapsulateMeshFilters(IEnumerable<MeshFilter> meshFilters, Transform relativeTransform = null)
+	public static Bounds CalculateRenderersBounds(IEnumerable<Renderer> renderers, Transform relativeTransform = null)
 	{
+		bool initializedBounds = false;
 		Bounds bounds = new Bounds();
-		bounds.center = Vector3.zero;
-		bounds.size = Vector3.zero;
-
+		
 		bool hasRelativeTransform = relativeTransform != null;
 
-		foreach (var meshFilter in meshFilters)
+		foreach (var renderer in renderers)
 		{
-			if (meshFilter.sharedMesh == null)
+			Mesh sharedMesh = null;
+
+			var meshRenderer = renderer as MeshRenderer;
+			if (meshRenderer != null)
+				sharedMesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
+
+			var skinnedRenderer = renderer as SkinnedMeshRenderer;
+			if (skinnedRenderer != null)
+				sharedMesh = skinnedRenderer.sharedMesh;
+
+			if (sharedMesh == null)
 				continue;
 
-			Transform mfTransform = meshFilter.transform;
+			Transform mfTransform = renderer.transform;
 			Vector3 lossyScale = mfTransform.lossyScale;
 
-			Bounds meshBounds = meshFilter.sharedMesh.bounds;
+			Bounds meshBounds = sharedMesh.bounds;
 
 			Vector3 center = mfTransform.TransformPoint(meshBounds.center);
 
@@ -176,14 +191,28 @@ public static class PhysicsUtils
 
 			if (hasRelativeTransform)
 			{
+				if (!initializedBounds)
+				{
+					bounds.center = Vector3.zero;
+					bounds.size = Vector3.zero;
+				}
+
 				for (int i = 0; i < tempCorners.Length; i++)
 					bounds.Encapsulate(relativeTransform.InverseTransformPoint(tempCorners[i]));
 			}
 			else
 			{
+				if (!initializedBounds)
+				{
+					bounds.center = renderer.bounds.center;
+					bounds.size = Vector3.zero;
+				}
+
 				for (int i = 0; i < tempCorners.Length; i++)
 					bounds.Encapsulate(tempCorners[i]);
 			}
+
+			initializedBounds = true;
 		}
 
 		return bounds;
@@ -335,8 +364,6 @@ public static class PhysicsUtils
 
 	public static int GetAllOverlaps(Collider[] colliders, ref List<Collider> overlapColliders, int layerMask = ~0, QueryTriggerInteraction queryTriggers = QueryTriggerInteraction.UseGlobal)
 	{
-		// TODO: Make this non alloc with a pre-initilized array of colliders
-
 		overlapColliders.Clear();
 		uniqueOverlapResults.Clear();
 
@@ -405,6 +432,28 @@ public static class PhysicsUtils
 		return overlapColliders.Count;
 	}
 
+	// Note this function ignores trigger state
+	public static bool CheckColliderOverlap(Collider colliderA, Collider colliderB)
+	{
+		if (Physics.GetIgnoreCollision(colliderA, colliderB))
+			return false;
+
+		if (Physics.GetIgnoreLayerCollision(colliderA.gameObject.layer, colliderB.gameObject.layer))
+			return false;
+
+		if (!colliderA.enabled || !colliderA.gameObject.activeInHierarchy ||
+			!colliderB.enabled || !colliderB.gameObject.activeInHierarchy)
+			return false;
+
+		Transform transformA = colliderA.transform;
+		Transform transformB = colliderB.transform;
+
+		return Physics.ComputePenetration(
+			colliderA, transformA.position, transformA.rotation,
+			colliderB, transformB.position, transformB.rotation,
+			out Vector3 direction, out float distance);
+	}
+
 	public static Vector3 ComputeMaxPenetration(Collider[] colliders, int layerMask = ~0, QueryTriggerInteraction queryTriggers = QueryTriggerInteraction.UseGlobal)
 	{
 		Vector3 maxResolveVec = Vector3.zero;
@@ -417,7 +466,7 @@ public static class PhysicsUtils
 				Vector3 boxExtents = boxCollider.size / 2f;
 				boxExtents.Scale(boxCollider.transform.localScale);
 
-				Vector3 colliderPos = boxCollider.transform.position + boxCollider.center;
+				Vector3 colliderPos = boxCollider.transform.TransformPoint(boxCollider.center);
 
 				int numOverlaps = Physics.OverlapBoxNonAlloc(
 					colliderPos,
@@ -432,7 +481,7 @@ public static class PhysicsUtils
 					if (System.Array.IndexOf(colliders, overlapResults[i]) != -1)
 						continue;
 
-					Vector3 resolveVec = ComputePenetration(collider, colliderPos, collider.transform.rotation, overlapResults[i]);
+					Vector3 resolveVec = ComputePenetration(collider, overlapResults[i]);
 
 					if (Mathf.Abs(resolveVec.x) > Mathf.Abs(maxResolveVec.x))
 						maxResolveVec.x = resolveVec.x;
@@ -450,7 +499,7 @@ public static class PhysicsUtils
 			SphereCollider sphereCollider = collider as SphereCollider;
 			if (sphereCollider != null)
 			{
-				Vector3 colliderPos = sphereCollider.transform.position + sphereCollider.center;
+				Vector3 colliderPos = sphereCollider.transform.TransformPoint(sphereCollider.center);
 
 				Vector3 localScale = sphereCollider.transform.localScale;
 				float colliderRadius = sphereCollider.radius * Mathf.Max(
@@ -468,7 +517,7 @@ public static class PhysicsUtils
 					if (System.Array.IndexOf(colliders, overlapResults[i]) != -1)
 						continue;
 
-					Vector3 resolveVec = ComputePenetration(collider, colliderPos, collider.transform.rotation, overlapResults[i]);
+					Vector3 resolveVec = ComputePenetration(collider, overlapResults[i]);
 					if (Mathf.Abs(resolveVec.x) > Mathf.Abs(maxResolveVec.x))
 						maxResolveVec.x = resolveVec.x;
 
@@ -485,8 +534,6 @@ public static class PhysicsUtils
 			CapsuleCollider capsuleCollider = collider as CapsuleCollider;
 			if (capsuleCollider != null)
 			{
-				Vector3 colliderPos = capsuleCollider.transform.position + capsuleCollider.center;
-
 				Vector3 pointOffset = Vector3.up * (capsuleCollider.height / 2f - capsuleCollider.radius);
 				Vector3 p1 = capsuleCollider.transform.TransformPoint(pointOffset);
 				Vector3 p2 = capsuleCollider.transform.TransformPoint(-pointOffset);
@@ -503,7 +550,7 @@ public static class PhysicsUtils
 					if (System.Array.IndexOf(colliders, overlapResults[i]) != -1)
 						continue;
 
-					Vector3 resolveVec = ComputePenetration(collider, colliderPos, collider.transform.rotation, overlapResults[i]);
+					Vector3 resolveVec = ComputePenetration(collider, overlapResults[i]);
 					if (Mathf.Abs(resolveVec.x) > Mathf.Abs(maxResolveVec.x))
 						maxResolveVec.x = resolveVec.x;
 
@@ -521,27 +568,35 @@ public static class PhysicsUtils
 		return maxResolveVec;
 	}
 
-	private static Vector3 ComputePenetration(Collider a, Vector3 positionA, Quaternion rotationA, Collider b)
+	private static Vector3 GetColliderCenter(Collider col)
 	{
-		Vector3 positionB = b.transform.position;
-		BoxCollider boxCollider = b as BoxCollider;
-		if (boxCollider != null)
-			positionB = boxCollider.transform.position + boxCollider.center;
+		Vector3 pos = col.transform.position;
+		BoxCollider box = col as BoxCollider;
+		if (box != null)
+			pos = box.transform.TransformPoint(box.center);
 
-		SphereCollider sphereCollider = b as SphereCollider;
-		if(sphereCollider != null)
-			positionB = sphereCollider.transform.position + sphereCollider.center;
+		SphereCollider sphere = col as SphereCollider;
+		if (sphere != null)
+			pos = sphere.transform.TransformPoint(sphere.center);
 
-		CapsuleCollider capsuleCollider = b as CapsuleCollider;
-		if (capsuleCollider != null)
-			positionB = capsuleCollider.transform.position = capsuleCollider.center;
+		CapsuleCollider capsule = col as CapsuleCollider;
+		if (capsule != null)
+			pos = capsule.transform.TransformPoint(capsule.center);
+
+		return pos;
+	}
+
+	private static Vector3 ComputePenetration(Collider a, Collider b)
+	{
+		Vector3 posA = GetColliderCenter(a);
+		Vector3 posB = GetColliderCenter(b);
 
 		Vector3 direction = Vector3.zero;
 		float distance = 0f;
 
 		Physics.ComputePenetration(
-			a, positionA, a.transform.rotation,
-			b, positionB, b.transform.rotation,
+			a, posA, a.transform.rotation,
+			b, posB, b.transform.rotation,
 			out direction,
 			out distance);
 

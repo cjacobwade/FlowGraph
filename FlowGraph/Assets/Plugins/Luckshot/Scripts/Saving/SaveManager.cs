@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
@@ -9,6 +10,9 @@ public class SaveManager : Singleton<SaveManager>
 	private List<Item> items = new List<Item>();
 
 	private WorldState worldState = null;
+
+	public event System.Action OnWillLoad = delegate {};
+	public event System.Action OnLoadFinished = delegate {};
 
 	private void Start()
 	{
@@ -28,7 +32,7 @@ public class SaveManager : Singleton<SaveManager>
 				ItemState itemState = worldState.itemStates[i];
 				if (items[i].Data.name == itemState.itemName)
 				{
-					item.ApplyItemState(itemState);
+					itemState.ApplyStateToItem(item);
 				}
 			}
 		}
@@ -37,28 +41,38 @@ public class SaveManager : Singleton<SaveManager>
 	public void DeregisterItem(Item item)
 	{ items.Remove(item); }
 
-	[ContextMenu("Save World State")]
-	public void Save()
+	public void CollectWorldState()
 	{
+		// TODO: Rather than restarting from scratch maybe can update things based on dirty state?
+
 		worldState = new WorldState();
-		for(int i = 0; i < items.Count; i++)
+		for (int i = 0; i < items.Count; i++)
 			worldState.itemStates.Add(items[i].BuildItemState());
+	}
+
+	[ContextMenu("Save World State")]
+	public void SaveToDisk()
+	{
+		CollectWorldState();
 
 		string saveOutput = JsonUtility.ToJson(worldState);
 		PlatformServices.CurrentPlatform.SaveToDisk(saveOutput);
 	}
 
 	[ContextMenu("Load World State")]
-	public bool Load()
+	public bool LoadFromDisk()
 	{
+		OnWillLoad();
+
 		string loadText = PlatformServices.CurrentPlatform.LoadFromDisk();
 		if (string.IsNullOrEmpty(loadText))
 			return false;
 
-		WorldState state = JsonUtility.FromJson<WorldState>(loadText);
-		for(int i = 0; i < state.itemStates.Count; i++)
+		worldState = JsonUtility.FromJson<WorldState>(loadText);
+
+		for(int i = 0; i < worldState.itemStates.Count; i++)
 		{
-			ItemState itemState = state.itemStates[i];
+			ItemState itemState = worldState.itemStates[i];
 			if (itemState != null)
 			{
 				if (itemState.persistent)
@@ -67,7 +81,7 @@ public class SaveManager : Singleton<SaveManager>
 					{
 						if (items[j].Data.name == itemState.itemName)
 						{
-							items[j].ApplyItemState(itemState);
+							itemState.ApplyStateToItem(items[j]);
 							break;
 						}
 					}
@@ -79,6 +93,8 @@ public class SaveManager : Singleton<SaveManager>
 			}
 		}
 
+		OnLoadFinished();
+
 		return true;
 	}
 
@@ -86,7 +102,7 @@ public class SaveManager : Singleton<SaveManager>
 	{
 		if (BigHopsPrefs.Instance.AutoSaveOnQuit) 
 		{
-			Save();
+			SaveToDisk();
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Luckshot.Paths
 		[SerializeField, AutoCache]
 		private PathBase path = null;
 
-		[SerializeField]
+		[SerializeField, Range(0f, 1f)]
 		private float alpha = 0f;
 
 		private void OnDrawGizmosSelected()
@@ -25,10 +25,12 @@ namespace Luckshot.Paths
 
 			Vector3 pos = path.GetPoint(alpha);
 			Vector3 normal = path.GetNormal(alpha);
+			Vector3 forward = path.GetDirection(alpha);
 
 			Gizmos.DrawSphere(pos, 0.1f);
 
 			Debug.DrawLine(pos, pos + normal, Color.red);
+			Debug.DrawLine(pos, pos + forward, Color.blue);
 		}
 	}
 }

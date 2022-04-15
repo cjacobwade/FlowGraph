@@ -8,8 +8,7 @@ public class VisualsModel : MonoBehaviour
 {
 	[SerializeField]
 	private Renderer[] renderers = new Renderer[0];
-	public Renderer[] Renderers
-	{ get { return renderers; } }
+	public Renderer[] Renderers => renderers;
 
 	public void SetRenderers(Renderer[] inRenderer)
 	{
@@ -19,8 +18,7 @@ public class VisualsModel : MonoBehaviour
 
 	[SerializeField]
 	private Renderer[] highlightRenderers = null;
-	public Renderer[] HighlightRenderers
-	{ get { return highlightRenderers; } }
+	public Renderer[] HighlightRenderers => highlightRenderers;
 
 	public void SetHighlightRenderers(Renderer[] inRenderers)
 	{
@@ -30,8 +28,7 @@ public class VisualsModel : MonoBehaviour
 
 	[SerializeField]
 	private Material highlightOverrideMat = null;
-	public Material HighlightOverrideMat
-	{ get { return highlightOverrideMat; } }
+	public Material HighlightOverrideMat => highlightOverrideMat;
 
 	public void SetHighlightOverrideMat(Material inHighlightOverrideMat)
 	{
@@ -40,6 +37,10 @@ public class VisualsModel : MonoBehaviour
 	}
 
 	public event System.Action<VisualsModel> OnVisualsModelChanged = delegate {};
+
+	public LensManagerBool VisibleLens = new LensManagerBool(requests => LensUtils.AllTrue(requests, true));
+
+	private Dictionary<Renderer, bool> rendererToDefaultVisibilityMap = new Dictionary<Renderer, bool>();
 
 	private void Awake()
 	{
@@ -56,9 +57,39 @@ public class VisualsModel : MonoBehaviour
 			anyChanged = true;
 		}
 
+		foreach (var renderer in renderers)
+			rendererToDefaultVisibilityMap.Add(renderer, renderer.enabled);
+
 		if(anyChanged)
 			OnVisualsModelChanged(this);
 	}
+
+	private void OnEnable()
+	{
+		VisibleLens.OnValueChanged += VisibleLens_OnValueChanged;
+	}	
+
+	private void OnDisable()
+	{
+		VisibleLens.OnValueChanged -= VisibleLens_OnValueChanged;
+	}
+
+	private void VisibleLens_OnValueChanged(bool visible)
+	{
+		foreach(var renderer in renderers)
+		{
+			if(visible)
+			{
+				if (rendererToDefaultVisibilityMap.TryGetValue(renderer, out bool defaultVisibility))
+					renderer.enabled = defaultVisibility;
+			}
+			else
+			{
+				renderer.enabled = false;
+			}
+		}
+	}
+
 
 	[Button("Cache Filters")]
 	private void CacheFilters()

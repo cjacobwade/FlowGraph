@@ -137,6 +137,11 @@ public class LensManager<T> : LensManagerBase
 	{
 		if (!activeRequests.Contains(handle))
 		{
+			if(handle as Lens<T> == null)
+			{
+				Debug.LogErrorFormat("Trying to add {0} request to {1} lens manager.", handle.GetType(), typeof(T).ToString());
+			}
+
 			bool added = false;
 			for (int i = 0; i < activeRequests.Count; i++)
 			{

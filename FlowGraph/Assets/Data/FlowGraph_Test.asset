@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9008390113e071f4f9a034c20a60dbc8, type: 3}
+  m_Name: FlowGraph_Test
+  m_EditorClassIdentifier: 
+  startNodeID: 0
+  nodes:
+  - id: 0
+    name: Start
+    position: {x: 100, y: 100}
+    effects:
+    - nextNodeID: -1
+      sequenceMode: 2
+      wait: 0
+      function:
+        context:
+          name: 
+          type: UnityEngine.Object, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          source: 0
+          templateIndex: 0
+          enumValue: 0
+          value: {fileID: 11400000, guid: 30a28663766f70548ae7f15075e0bce2, type: 2}
+        module: FlowModule_Core
+        function: PlayFlow
+        arguments:
+        - id: 0
+  templateArguments: []
+  argumentTypeNames: []
+  references:
+    version: 1
+    00000000:
+      type: {class: Argument_FlowTemplate, ns: , asm: Assembly-CSharp-firstpass}
+      data:
+        name: template
+        type: FlowTemplate, Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+        source: 0
+        templateIndex: 0
+        enumValue: 0
+        value:
+          flowGraph: {fileID: 0}
+          arguments: []

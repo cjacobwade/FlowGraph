@@ -7,6 +7,7 @@ using UnityEditor;
 
 [CreateAssetMenu(fileName = "ItemData", menuName = "Luckshot/Item Data")]
 [InlineScriptableObject(path = "Assets/Resources/ItemDatas", inline = false)]
+[SaveLoadAsset(resourcePath = "ItemDatas/")]
 public class ItemData : ScriptableObject
 {
 	public static bool HaveSameRoot(ItemData a, ItemData b)
@@ -32,8 +33,21 @@ public class ItemData : ScriptableObject
 		}
 	}
 
+	[TextArea(3, 5)]
+	public string description = string.Empty;
+
 	public Color color = Color.white;
+	public bool interesting = true;
 	public ItemData parentItemData = null;
+
+	public ItemData GetRootItemData()
+	{
+		ItemData root = this;
+		while (root.parentItemData != null)
+			root = root.parentItemData;
+
+		return root;
+	}
 
 #if UNITY_EDITOR
 	public static ItemData CreateItemData(string path, string name)

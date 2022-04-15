@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 62d87b01a7594c64cae59b21179f6996
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - style: {fileID: 11400000, guid: a4e9d32aeac696c449289ad9db517496, type: 2}
+  - contourData: {fileID: 11400000, guid: 9c496b9162935374e9e8f08c1159a483, type: 2}
+  - path: {instanceID: 0}
+  - serializedMesh: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
