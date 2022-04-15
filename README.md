@@ -1,4 +1,4 @@
-# FlowGraph2
+# FlowGraph
 
 Flow Graph is a tool for authoring sequences of events that take place over time.
 It's not intended to be a visual coding tool or to replace writing code in C#. You will need to be able to write and read code to make use of this tool.
